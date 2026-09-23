@@ -56,6 +56,7 @@ No es una blockchain. No es un SaaS en la nube. Es un ledger local (append-only)
 ~/sttm/
 ├── CONTINUIDAD.md           <- ESTE DOCUMENTO
 ├── README.md                <- One-Pager público (Inglés)
+├── KANBAN.md                <- Tablero vivo de tareas (reglas y cola)
 ├── BITACORA.jsonl           <- Cadena de evidencia (append-only, 19 entradas)
 ├── LICENSE / LICENSE-DOCS.md<- MIT (código) / CC-BY 4.0 (docs)
 │
@@ -121,7 +122,7 @@ Lo deshabilitado no se muestra (ni gris ni tachado). El selector de modo siempre
 ❌ **Migración de `BITACORA.jsonl` a `data/proyectos/1-STTM/`:** pendiente (ADR-003 §3.5).
 ❌ **Anclaje público de la clave Ed25519:** decisión pendiente (equivalente R20-36 de Salem).
 ❌ **Render Markdown en vivo y WYSIWYG:** no prometidos (ADR-002).
-❌ **KANBAN.md y registro de documentos estilo GOB-005:** pendientes.
+❌ **Registro de documentos estilo GOB-005:** pendiente (KANBAN.md ya existe y gobierna la cola).
 
 ---
 
@@ -148,7 +149,7 @@ Lo deshabilitado no se muestra (ni gris ni tachado). El selector de modo siempre
 1. Selector de proyecto en la UI (segundo proyecto del catálogo).
 2. Migración de la bitácora a `data/proyectos/1-STTM/` (ADR-003 §3.5).
 3. Tests de render de UI (o declaración formal de que quedan manuales).
-4. KANBAN.md y registro de documentos estilo GOB-005.
+4. Registro de documentos estilo GOB-005 (el tablero vivo es KANBAN.md).
 5. Decisión de anclaje público de la clave Ed25519.
 6. Actualización del documento de identidad Capa 2 por el autor.
 
