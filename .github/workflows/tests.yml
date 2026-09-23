@@ -1,0 +1,49 @@
+# .github/workflows/tests.yml — CI para STTM
+# Ejecuta la suite de tests black-box en cada push y pull request.
+# Ref: STTM-0.4 (suite de 7 tests con unittest + tempfile).
+# Alineado al principio Salem "evidencia antes que publicidad".
+
+name: Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# Cancelar ejecuciones previas del mismo branch si hay un nuevo push.
+# Evita acumular runs obsoletos cuando se iteran commits rápidos.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Python ${{ matrix.python-version }} en ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11", "3.12", "3.13"]
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Verificar versión de Python
+        run: python --version
+
+      - name: Ejecutar suite de tests black-box
+        # Los tests usan tempfile para aislamiento (Fix H10.6 de Sofia Salem).
+        # No requieren pip install: son stdlib pura (unittest + hashlib + json).
+        run: python -m unittest tests.test_sttm -v
+
+      - name: Verificar bitacora local del repo
+        # Chequeamos que la bitacora del repo este integra en el runner.
+        run: python scripts/verificar.py

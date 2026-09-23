@@ -1,5 +1,7 @@
 # STTM — Salem Traceability & Trust Method
 
+[![Tests](https://github.com/salemlenguaje-hue/STTM/actions/workflows/tests.yml/badge.svg)](https://github.com/salemlenguaje-hue/STTM/actions/workflows/tests.yml)
+
 **Local-first, tamper-evident audit trails for AI Safety evaluations.**
 
 > *Note: This English document is the reference for international evaluation and grants. The author's native engineering language is Spanish; internal governance documents (ADRs, GOBs) and the Spanish One-Pager are available in `docs/`.*
