@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STTM — Visor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>STTM <span class="accent">/</span> Visor</h1>
+        <nav>
+            <button id="btn-bitacora" class="nav-btn active">Bitácora</button>
+            <button id="btn-documentos" class="nav-btn">Documentos</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="vista-bitacora" class="vista">
+            <h2>Cadena de Evidencia</h2>
+            <div id="lista-bitacora" class="lista"></div>
+        </section>
+
+        <section id="vista-documentos" class="vista oculto">
+            <h2>Documentos</h2>
+            <div id="lista-documentos" class="lista"></div>
+            <article id="visor-documento" class="visor oculto">
+                <button id="cerrar-doc">← Volver</button>
+                <pre id="contenido-doc"></pre>
+            </article>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
