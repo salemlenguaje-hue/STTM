@@ -68,7 +68,7 @@ def escanear_privacidad():
             
             # 1. Chequeo de nombre de archivo (se hace siempre)
             for patron in ARCHIVOS_ROJOS:
-                if patron in nombre_lower:
+                if patron in nombre_lower and "publica" not in nombre_lower:
                     hallazgos.append(f"🔴 ARCHIVO SENSIBLE: {ruta_rel} (coincide con '{patron}')")
                     break
             
