@@ -32,3 +32,6 @@ auditorias/temp/
 
 # --- Notas de estrategia local (con nombres de entidades) ---
 data/estrategia/
+
+# --- K-005: clave publica anclada (verificable por terceros) ---
+!data/claves/sofia_publica.pem

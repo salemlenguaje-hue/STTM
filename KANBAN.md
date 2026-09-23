@@ -47,12 +47,6 @@ frecuencia de revisión.
 **Aceptación:** docs/00-gobernanza/REGISTRO-DOCS.md listando cada documento
 vivo con ID, versión, estado, responsable y enlace.
 
-### K-005 — Decisión de anclaje público de la clave Ed25519
-**Prioridad:** alta (confianza externa).
-**Aceptación:** ADR o entrada de bitácora con la decisión (anclar o no) y su
-motivo. Si se ancla: clave pública en el repo, CI verificando con ella y
-desaparición del aviso "clave pública ausente".
-
 ### K-006 — Actualización del documento de identidad Capa 2
 **Prioridad:** baja. **Responsable:** autor (Martín).
 **Aceptación:** documento actualizado en la carpeta de la empresa + entrada
@@ -84,6 +78,12 @@ evaluadores externos.
 
 ### K-000 — Crear KANBAN.md y adoptar las reglas del tablero
 **Evidencia:** entrada #20 de bitácora y commit STTM-0.15.
+
+### K-005 — Anclaje público de la clave Ed25519
+**Evidencia:** entrada #21 de bitácora, commit STTM-0.16 y
+docs/06-seguridad/ANCLAJE-CLAVE-ED25519.md con fingerprint SHA-256.
+CI verifica ed25519 completo desde ese commit.
+**Pendiente derivado:** testigo externo manual fuera de GitHub (autor).
 
 ---
 *Tablero vivo. Se actualiza en el mismo commit que el trabajo que mueve tarjetas.*

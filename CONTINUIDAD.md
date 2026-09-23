@@ -114,13 +114,14 @@ Lo deshabilitado no se muestra (ni gris ni tachado). El selector de modo siempre
 ✅ CI con GitHub Actions: 40 tests en 3 versiones de Python.
 ✅ Gobernanza: GOB-001, ADR-001/002/003, CONTINUIDAD, identidad visual documentada.
 ✅ Incidentes 001, 002 y UI-001 documentados con fix, tests y lecciones.
+✅ Clave pública Ed25519 anclada en el repo (K-005): verificación completa por terceros y en CI.
 
 ### Lo que STTM NO es / deudas declaradas
 ❌ **No es un HSM:** no protege contra root con control del disco.
 ❌ **Render de la UI sin tests automatizados:** validada a mano en dispositivo; los endpoints sí tienen tests (`tests/test_servidor.py`, 9 tests).
 ❌ **Selector de proyecto en UI:** pendiente (hoy opera el proyecto #1; el catálogo ya soporta N).
 ❌ **Migración de `BITACORA.jsonl` a `data/proyectos/1-STTM/`:** pendiente (ADR-003 §3.5).
-❌ **Anclaje público de la clave Ed25519:** decisión pendiente (equivalente R20-36 de Salem).
+❌ **Timestamping externo con testigos:** no implementado (capa siguiente al anclaje de clave).
 ❌ **Render Markdown en vivo y WYSIWYG:** no prometidos (ADR-002).
 ❌ **Registro de documentos estilo GOB-005:** pendiente (KANBAN.md ya existe y gobierna la cola).
 
@@ -150,7 +151,7 @@ Lo deshabilitado no se muestra (ni gris ni tachado). El selector de modo siempre
 2. Migración de la bitácora a `data/proyectos/1-STTM/` (ADR-003 §3.5).
 3. Tests de render de UI (o declaración formal de que quedan manuales).
 4. Registro de documentos estilo GOB-005 (el tablero vivo es KANBAN.md).
-5. Decisión de anclaje público de la clave Ed25519.
+5. Testigo externo manual del fingerprint de la clave (fuera de GitHub), por el autor.
 6. Actualización del documento de identidad Capa 2 por el autor.
 
 ---
