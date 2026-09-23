@@ -16,12 +16,22 @@
       <img src="salem-logo.png" alt="Isologo Salem" class="logo">
       <div class="marca-texto">
         <h1>STTM</h1>
-        <span class="subtitulo">Salem Traceability &amp; Trust Method — Visor de evidencia</span>
+        <span class="subtitulo">Salem Traceability & Trust Method</span>
       </div>
+    </div>
+    <div class="selector-modo">
+      <label for="modo-select">Modo:</label>
+      <select id="modo-select" class="select-modo">
+        <option value="simple">Simple</option>
+        <option value="continuidad">Continuidad</option>
+        <option value="salem">Salem</option>
+      </select>
     </div>
     <nav>
       <button id="btn-bitacora" class="nav-btn active">01 · Bitácora</button>
-      <button id="btn-documentos" class="nav-btn">02 · Documentos</button>
+      <button id="btn-documentos" class="nav-btn oculto">02 · Documentos</button>
+      <button id="btn-auditorias" class="nav-btn oculto">03 · Auditorías</button>
+      <button id="btn-ayuda" class="nav-btn">? Ayuda</button>
     </nav>
   </header>
 
@@ -31,23 +41,122 @@
   </section>
 
   <main>
+    <!-- VISTA BITÁCORA -->
     <section id="vista-bitacora" class="vista">
       <h2><span class="num">01</span> Cadena de Evidencia</h2>
+      <button id="btn-nueva-entrada" class="btn-accion">+ Nueva entrada</button>
       <div id="lista-bitacora" class="lista"></div>
     </section>
 
+    <!-- FORMULARIO NUEVA ENTRADA (oculto por defecto) -->
+    <section id="formulario-entrada" class="vista oculto">
+      <h2><span class="num">01</span> Nueva entrada</h2>
+      <form id="form-entrada">
+        <label for="ent-titulo">Título *</label>
+        <input type="text" id="ent-titulo" required placeholder="Ej: Inicio del experimento 001">
+        
+        <label for="ent-detalle">Detalle *</label>
+        <textarea id="ent-detalle" required rows="4" placeholder="Descripción de lo que pasó, por qué importa y qué se espera después."></textarea>
+        
+        <label for="ent-archivos">Archivos afectados (opcional, separados por comas)</label>
+        <input type="text" id="ent-archivos" placeholder="Ej: docs/GOB-001.md, scripts/registrar.py">
+        
+        <label for="ent-commit">Commit relacionado (opcional)</label>
+        <input type="text" id="ent-commit" placeholder="Hash corto de Git">
+        
+        <label for="ent-modo-firma">Modo de firma *</label>
+        <select id="ent-modo-firma" required>
+          <option value="hash">Hash (básico)</option>
+          <option value="hmac">HMAC (simétrico)</option>
+          <option value="ed25519">Ed25519 (asimétrico)</option>
+        </select>
+        
+        <div class="form-botones">
+          <button type="submit" class="btn-accion">Guardar entrada</button>
+          <button type="button" id="btn-cancelar-entrada" class="btn-accion btn-secundario">Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- VISTA DOCUMENTOS -->
     <section id="vista-documentos" class="vista oculto">
       <h2><span class="num">02</span> Documentos</h2>
+      <button id="btn-nuevo-doc" class="btn-accion">+ Nuevo documento</button>
       <div id="lista-documentos" class="lista"></div>
       <article id="visor-documento" class="visor oculto">
-        <button id="cerrar-doc">← Volver</button>
+        <button id="cerrar-doc" class="btn-accion btn-secundario">← Volver</button>
         <pre id="contenido-doc"></pre>
       </article>
+    </section>
+
+    <!-- FORMULARIO NUEVO DOCUMENTO (oculto por defecto) -->
+    <section id="formulario-documento" class="vista oculto">
+      <h2><span class="num">02</span> Nuevo documento</h2>
+      <form id="form-documento">
+        <label for="doc-tipo">Tipo *</label>
+        <select id="doc-tipo" required>
+          <option value="gob">GOB (Gobernanza)</option>
+          <option value="adr">ADR (Arquitectura)</option>
+          <option value="metodo">Método</option>
+          <option value="otro">Otro</option>
+        </select>
+        
+        <label for="doc-titulo">Título *</label>
+        <input type="text" id="doc-titulo" required placeholder="Ej: Política de versionado">
+        
+        <label for="doc-cuerpo">Cuerpo (Markdown) *</label>
+        <textarea id="doc-cuerpo" required rows="10" placeholder="# Título
+
+Contenido en Markdown..."></textarea>
+        
+        <div class="form-botones">
+          <button type="submit" class="btn-accion">Guardar documento</button>
+          <button type="button" id="btn-cancelar-doc" class="btn-accion btn-secundario">Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- VISTA AUDITORÍAS -->
+    <section id="vista-auditorias" class="vista oculto">
+      <h2><span class="num">03</span> Auditorías</h2>
+      <button id="btn-nueva-auditoria" class="btn-accion">+ Nueva auditoría</button>
+      <div id="lista-auditorias" class="lista"></div>
+      <article id="visor-auditoria" class="visor oculto">
+        <button id="cerrar-auditoria" class="btn-accion btn-secundario">← Volver</button>
+        <div id="contenido-auditoria"></div>
+      </article>
+    </section>
+
+    <!-- FORMULARIO NUEVA AUDITORÍA (oculto por defecto) -->
+    <section id="formulario-auditoria" class="vista oculto">
+      <h2><span class="num">03</span> Nueva auditoría</h2>
+      <form id="form-auditoria">
+        <label for="aud-motivo">Motivo *</label>
+        <input type="text" id="aud-motivo" required placeholder="Ej: Auditoría de rutina">
+        
+        <label for="aud-tipo">Tipo *</label>
+        <select id="aud-tipo" required>
+          <option value="rapida">Rápida</option>
+          <option value="estandar">Estándar</option>
+          <option value="profunda">Profunda</option>
+        </select>
+        
+        <div class="form-botones">
+          <button type="submit" class="btn-accion">Ejecutar auditoría</button>
+          <button type="button" id="btn-cancelar-auditoria" class="btn-accion btn-secundario">Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- VISTA AYUDA -->
+    <section id="vista-ayuda" class="vista oculto">
+      <h2><span class="num">?</span> Ayuda</h2>
+      <div id="contenido-ayuda" class="ayuda"></div>
     </section>
   </main>
 
   <footer class="pie">
-    <span>STTM — Salem Traceability &amp; Trust Method</span>
+    <span>STTM — Salem Traceability & Trust Method</span>
     <span>Martín José Dalberto · Argentina · 2026</span>
   </footer>
 

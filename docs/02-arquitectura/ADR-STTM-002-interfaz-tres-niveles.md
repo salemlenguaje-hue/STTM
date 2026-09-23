@@ -200,3 +200,32 @@ El servidor lo lee al arrancar y lo expone en `/api/proyecto`. La interfaz lo co
 
 - v0.1, 2026-09-23: versión inicial del ADR, pendiente de revisión.
 - v0.2, 2026-09-23: terminología neutral (entidad evaluadora); persistencia de modo apuntada al catálogo de ADR-003.
+
+## 3.6 Export y compartido de reportes (v1) — addendum 2026-09-23
+
+Decisión: la exportación de reportes de auditoría se implementa en tres
+niveles de degradación honesta, todos del lado del cliente (el servidor
+STTM nunca sube evidencia a terceros por cuenta propia):
+
+1. **Descarga local (.md):** Blob + enlace de descarga. Siempre disponible.
+2. **Web Share API (navigator.share):** con archivo si el navegador lo
+   permite (Android Chrome); si no, solo texto del resumen.
+3. **Menú de enlaces externos:** mailto: y wa.me con el RESUMEN del reporte
+   (estado final, estado de cadena, identificador). El reporte completo
+   viaja como archivo descargado que la persona adjunta manualmente.
+
+Límites declarados:
+
+- mailto: y wa.me tienen límites de longitud: solo viaja el resumen,
+  nunca el reporte completo.
+- No hay envío de email desde el servidor: Termux no tiene MTA y el
+  principio local-first prohíbe que el servidor suba evidencia a terceros
+  sin decisión explícita.
+- Abrir WhatsApp o el cliente de mail es una acción de la persona:
+  la UI propone, la persona decide (Tomo II §2).
+- La procedencia viaja en el resumen ("Generado por STTM").
+
+## Historial del addendum
+
+- v0.3, 2026-09-23: sección 3.6 (export y compartido), originada en la
+  mejora MEJ-001 detectada durante la prueba de UI.

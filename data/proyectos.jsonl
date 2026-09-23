@@ -1,0 +1,5 @@
+{"n": 1, "ref_interna": "STTM", "titulo": "STTM — Salem Traceability & Trust Method", "descripcion": "Metodología y herramienta de trazabilidad, auditoría y evidencia para proyectos técnicos.", "creado_utc": "2026-09-23T18:00:00Z", "nivel_inicial": "continuidad", "nivel_actual": "continuidad", "primera_auditoria_utc": null, "ultima_auditoria_utc": null, "activo": true}
+{"accion": "actualizar", "n": 1, "ts": "2026-09-23T16:52:25Z", "cambios": {"ultima_auditoria_utc": "2026-09-23T16:52:25Z", "primera_auditoria_utc": "2026-09-23T16:52:25Z"}, "motivo": "auditoria completada"}
+{"accion": "actualizar", "n": 1, "ts": "2026-09-23T17:15:33Z", "cambios": {"ultima_auditoria_utc": "2026-09-23T17:15:33Z"}, "motivo": "auditoria completada"}
+{"accion": "actualizar", "n": 1, "ts": "2026-09-23T18:03:34Z", "cambios": {"nivel_actual": "salem"}, "motivo": "cambio desde la interfaz"}
+{"accion": "actualizar", "n": 1, "ts": "2026-09-23T18:08:19Z", "cambios": {"ultima_auditoria_utc": "2026-09-23T18:08:19Z"}, "motivo": "auditoria completada"}

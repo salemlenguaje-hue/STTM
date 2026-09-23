@@ -1,0 +1,33 @@
+{
+  "auditoria_id": "AUD-20260923-171533",
+  "proyecto_n": 1,
+  "proyecto_ref": "STTM",
+  "fecha_utc": "2026-09-23T17:15:33Z",
+  "motivo": "Re-auditoría post incidente 002: regex de forma real de secreto y clasificación por .gitignore",
+  "solicitante": {
+    "rol": "autor",
+    "nombre": "Martín José Dalberto"
+  },
+  "ejecutado_por": {
+    "rol": "autor",
+    "nombre": "Martín José Dalberto"
+  },
+  "tipo": "rapida",
+  "modo_aplicado": "continuidad",
+  "hallazgos": {
+    "rojos": 0,
+    "amarillos": 2,
+    "informativos": 0
+  },
+  "estado_final": "apto_con_observaciones",
+  "cadena_integra": true,
+  "entradas_verificadas": 15,
+  "entradas_totales": 15,
+  "firmas_validadas": 14,
+  "reporte_ruta": "reporte.md",
+  "manifiesto_ruta": "manifiesto.json",
+  "observaciones": [
+    "Entrada #10: firma HMAC legacy (incidente 001), contenido íntegro.",
+    "🟡 ARCHIVO SENSIBLE EN UBICACION CONTROLADA: data/claves/sofia_privada.pem (excluido por .gitignore: *.pem). Verificar que la exclusion siga vigente."
+  ]
+}

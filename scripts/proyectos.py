@@ -74,7 +74,14 @@ def agregar(entrada):
 def cmd_listar(args):
     estado = cargar_estado()
     if not estado:
+        if getattr(args, "json", False):
+            print("[]")
+            return 0
         print("Catálogo vacío.")
+        return 0
+    if getattr(args, "json", False):
+        print(json.dumps([dict(estado[n], n=n) for n in sorted(estado)],
+                         ensure_ascii=False))
         return 0
     for n in sorted(estado):
         p = estado[n]
@@ -152,7 +159,9 @@ def main():
     parser = argparse.ArgumentParser(description="Gestor del catálogo de proyectos STTM.")
     sub = parser.add_subparsers(dest="comando")
 
-    sub.add_parser("listar", help="Lista proyectos activos e inactivos.")
+    p_listar = sub.add_parser("listar", help="Lista proyectos activos e inactivos.")
+    p_listar.add_argument("--json", action="store_true",
+                          help="Salida JSON para consumo de máquinas/UI.")
 
     p_crear = sub.add_parser("crear", help="Crea un proyecto nuevo.")
     p_crear.add_argument("--titulo", required=True)
