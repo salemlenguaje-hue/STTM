@@ -29,3 +29,6 @@ data/*.sqlite
 
 # Ignoramos temporalidades de auditoría
 auditorias/temp/
+
+# --- Notas de estrategia local (con nombres de entidades) ---
+data/estrategia/
