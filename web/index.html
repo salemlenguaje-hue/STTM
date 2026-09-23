@@ -1,39 +1,56 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STTM — Visor</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>STTM — Visor de evidencia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>STTM <span class="accent">/</span> Visor</h1>
-        <nav>
-            <button id="btn-bitacora" class="nav-btn active">Bitácora</button>
-            <button id="btn-documentos" class="nav-btn">Documentos</button>
-        </nav>
-    </header>
 
-    <main>
-        <section id="vista-bitacora" class="vista">
-            <h2>Cadena de Evidencia</h2>
-            <div id="lista-bitacora" class="lista"></div>
-        </section>
+  <header class="cabecera">
+    <div class="marca">
+      <img src="salem-logo.png" alt="Isologo Salem" class="logo">
+      <div class="marca-texto">
+        <h1>STTM</h1>
+        <span class="subtitulo">Salem Traceability &amp; Trust Method — Visor de evidencia</span>
+      </div>
+    </div>
+    <nav>
+      <button id="btn-bitacora" class="nav-btn active">01 · Bitácora</button>
+      <button id="btn-documentos" class="nav-btn">02 · Documentos</button>
+    </nav>
+  </header>
 
-        <section id="vista-documentos" class="vista oculto">
-            <h2>Documentos</h2>
-            <div id="lista-documentos" class="lista"></div>
-            <article id="visor-documento" class="visor oculto">
-                <button id="cerrar-doc">← Volver</button>
-                <pre id="contenido-doc"></pre>
-            </article>
-        </section>
-    </main>
+  <section class="hero">
+    <img src="sttm-equipo.png"
+         alt="Equipo de auditoría alrededor de una mesa con libros de actas; el isologo Salem emerge como holograma desde una laptop, conectado a cada documento por líneas de luz">
+  </section>
 
-    <script src="app.js"></script>
+  <main>
+    <section id="vista-bitacora" class="vista">
+      <h2><span class="num">01</span> Cadena de Evidencia</h2>
+      <div id="lista-bitacora" class="lista"></div>
+    </section>
+
+    <section id="vista-documentos" class="vista oculto">
+      <h2><span class="num">02</span> Documentos</h2>
+      <div id="lista-documentos" class="lista"></div>
+      <article id="visor-documento" class="visor oculto">
+        <button id="cerrar-doc">← Volver</button>
+        <pre id="contenido-doc"></pre>
+      </article>
+    </section>
+  </main>
+
+  <footer class="pie">
+    <span>STTM — Salem Traceability &amp; Trust Method</span>
+    <span>Martín José Dalberto · Argentina · 2026</span>
+  </footer>
+
+  <script src="app.js"></script>
 </body>
 </html>

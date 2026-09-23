@@ -91,7 +91,7 @@ STTM se adapta al usuario. No obliga a usar ingeniería pesada en proyectos simp
 ✅ Cadena JSONL append-only con SHA-256.
 ✅ Verificador de integridad (detecta alteraciones de contenido y de cadena).
 ✅ Motor de auditoría (detecta archivos `.pem`, `.key`, tokens `ghp_`).
-✅ Visor web local con estética Salem Capa 2 (Verde neón / Cian).
+✅ Visor web local con capa visual clara (isologo original sin alterar + ilustracion derivada como hero; Capa 2 neon reservada para IDE/paneles segun doc de identidad, pendiente de actualizacion por el autor).
 ✅ CI/CD con GitHub Actions (Tests corren en cada push).
 
 ### Lo que STTM NO es (Límites honestos)
