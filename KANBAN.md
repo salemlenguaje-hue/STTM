@@ -29,13 +29,6 @@ cada tarjeta es un compromiso verificable, no un post-it.
 cambian bitácora, documentos y auditorías vistas; 1+ test de endpoint
 cubriendo la selección.
 
-### K-002 — Migrar la bitácora a data/proyectos/1-STTM/
-**Prioridad:** media-alta. Hacer ANTES que K-001 para no multiplicar rutas.
-**Dependencia:** decisión de rutas de lectura en registrar/verificar/auditar/servidor.
-**Aceptación:** bitácora única en la nueva ubicación; scripts y servidor la
-leen desde ahí; verificación íntegra desde la ruta nueva; migración
-registrada en bitácora; sin archivos duplicados.
-
 ### K-003 — Tests de render de UI o declaración formal de validación manual
 **Prioridad:** baja.
 **Aceptación:** tests/test_ui_render.py verde en CI, o entrada de bitácora
@@ -78,6 +71,14 @@ evaluadores externos.
 
 ### K-000 — Crear KANBAN.md y adoptar las reglas del tablero
 **Evidencia:** entrada #20 de bitácora y commit STTM-0.15.
+
+### K-002 — Migración de la bitácora a data/proyectos/1-STTM/
+**Evidencia:** entrada #24 de bitácora y commit STTM-0.20. Tests de paridad
+tests/test_k002_ubicacion.py: 3 rojos antes de migrar, 3 verdes después sin
+tocar el archivo de test. Backup pre-migración con SHA-256 en data/backups/.
+scripts/rutas.py como fuente única de verdad; 3 scripts y 4 tests parcheados;
+git mv preservó el historial. 43 tests verdes; verificación íntegra desde la
+ruta nueva.
 
 ### K-005 — Anclaje público de la clave Ed25519
 **Evidencia:** entrada #21 de bitácora, commit STTM-0.16 y

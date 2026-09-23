@@ -23,8 +23,9 @@ class TestPrivacidad(unittest.TestCase):
         self.raiz = Path(self.tmpdir)
         (self.raiz / "scripts").mkdir()
         (self.raiz / "auditorias").mkdir()
-        (self.raiz / "BITACORA.jsonl").write_text("", encoding="utf-8")
-        for s in ["registrar.py", "verificar.py", "auditar.py",
+        (self.raiz / "data" / "proyectos" / "1-STTM").mkdir(parents=True, exist_ok=True)
+        (self.raiz / "data" / "proyectos" / "1-STTM" / "BITACORA.jsonl").write_text("", encoding="utf-8")
+        for s in ["rutas.py", "registrar.py", "verificar.py", "auditar.py",
                   "firma.py", "proyectos.py", "auditoria_meta.py"]:
             (self.raiz / "scripts" / s).write_text(
                 (SCRIPTS_DIR / s).read_text(encoding="utf-8"), encoding="utf-8")

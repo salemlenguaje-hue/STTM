@@ -37,7 +37,8 @@ class TestServidor(unittest.TestCase):
         cls.tmp = Path(tempfile.mkdtemp(prefix="sttm_srv_test_"))
         for carpeta in ["scripts", "web", "auditorias", "data", "docs"]:
             (cls.tmp / carpeta).mkdir()
-        (cls.tmp / "BITACORA.jsonl").write_text("", encoding="utf-8")
+        (cls.tmp / "data" / "proyectos" / "1-STTM").mkdir(parents=True, exist_ok=True)
+        (cls.tmp / "data" / "proyectos" / "1-STTM" / "BITACORA.jsonl").write_text("", encoding="utf-8")
         (cls.tmp / "web" / "index.html").write_text("<html></html>", encoding="utf-8")
         (cls.tmp / "data" / "proyectos.jsonl").write_text(
             json.dumps({"n": 1, "ref_interna": "TEST", "titulo": "Proyecto test",
@@ -45,7 +46,7 @@ class TestServidor(unittest.TestCase):
                         "nivel_inicial": "continuidad", "nivel_actual": "continuidad",
                         "primera_auditoria_utc": None, "ultima_auditoria_utc": None,
                         "activo": True}) + "\n", encoding="utf-8")
-        for s in ["registrar.py", "verificar.py", "auditar.py", "firma.py",
+        for s in ["rutas.py", "registrar.py", "verificar.py", "auditar.py", "firma.py",
                   "proyectos.py", "auditoria_meta.py", "servidor.py"]:
             shutil.copy(SCRIPTS_DIR / s, cls.tmp / "scripts" / s)
         cls.port = puerto_libre()

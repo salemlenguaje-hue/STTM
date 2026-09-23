@@ -8,7 +8,7 @@ from pathlib import Path
 import firma
 
 RAIZ = Path(os.environ.get("STTM_ROOT", Path(__file__).resolve().parent.parent))
-BITACORA = RAIZ / "BITACORA.jsonl"
+from rutas import BITACORA  # K-002: fuente única de verdad de rutas
 HASH_CERO = "0" * 64
 CLAVE_HMAC = os.environ.get("STTM_HMAC_KEY", "clave_secreta_temporal")
 

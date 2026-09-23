@@ -22,8 +22,9 @@ class TestIntegracion(unittest.TestCase):
         self.raiz = Path(self.tmpdir)
         (self.raiz / "scripts").mkdir()
         (self.raiz / "data" / "claves").mkdir(parents=True)
-        (self.raiz / "BITACORA.jsonl").write_text("", encoding="utf-8")
-        for s in ["registrar.py", "verificar.py", "firma.py"]:
+        (self.raiz / "data" / "proyectos" / "1-STTM").mkdir(parents=True, exist_ok=True)
+        (self.raiz / "data" / "proyectos" / "1-STTM" / "BITACORA.jsonl").write_text("", encoding="utf-8")
+        for s in ["rutas.py", "registrar.py", "verificar.py", "firma.py"]:
             (self.raiz / "scripts" / s).write_text(
                 (SCRIPTS_DIR / s).read_text(encoding="utf-8"), encoding="utf-8")
         self.entorno = os.environ.copy()
@@ -40,7 +41,7 @@ class TestIntegracion(unittest.TestCase):
 
     def leer_entradas(self):
         return [json.loads(l) for l in
-                (self.raiz / "BITACORA.jsonl").read_text().splitlines() if l.strip()]
+                (self.raiz / "data" / "proyectos" / "1-STTM" / "BITACORA.jsonl").read_text().splitlines() if l.strip()]
 
     def test_roundtrip_hash(self):
         self.correr("registrar.py", "A", "detalle")
@@ -62,7 +63,7 @@ class TestIntegracion(unittest.TestCase):
              "firma_tipo": "hmac", "firma": None, "hash_prev": "0" * 64}
         e["hash"] = firma.hash_contenido(e)
         e["firma"] = firma.hmac_firma_legacy(e, "clave_secreta_temporal")
-        (self.raiz / "BITACORA.jsonl").write_text(
+        (self.raiz / "data" / "proyectos" / "1-STTM" / "BITACORA.jsonl").write_text(
             json.dumps(e, ensure_ascii=False) + "\n", encoding="utf-8")
         r = self.correr("verificar.py")
         self.assertEqual(r.returncode, 0, r.stdout)
@@ -74,7 +75,7 @@ class TestIntegracion(unittest.TestCase):
              "detalle": "x", "archivos": [], "commit_ref": None,
              "firma_tipo": "hash", "firma": None, "hash_prev": "0" * 64}
         e["hash"] = firma.hash_contenido_v1(e)
-        (self.raiz / "BITACORA.jsonl").write_text(
+        (self.raiz / "data" / "proyectos" / "1-STTM" / "BITACORA.jsonl").write_text(
             json.dumps(e, ensure_ascii=False) + "\n", encoding="utf-8")
         r = self.correr("verificar.py")
         self.assertEqual(r.returncode, 0, r.stdout)
@@ -82,7 +83,7 @@ class TestIntegracion(unittest.TestCase):
 
     def test_alteracion_se_detecta(self):
         self.correr("registrar.py", "A", "detalle original", "--modo-firma", "hmac")
-        b = self.raiz / "BITACORA.jsonl"
+        b = self.raiz / "data" / "proyectos" / "1-STTM" / "BITACORA.jsonl"
         b.write_text(b.read_text().replace("original", "tocado"))
         r = self.correr("verificar.py")
         self.assertEqual(r.returncode, 1)

@@ -6,8 +6,8 @@
 **Última actualización:** 2026-09-23
 **Versión del proyecto:** 0.3.0 (Interfaz ADR-002 implementada)
 **Entorno de desarrollo:** Termux (Android) / Linux / macOS
-**Tests automatizados:** 40 (GitHub Actions CI)
-**Entradas en bitácora:** 19 (v1=9, v2=10; incluye el registro de este cierre)
+**Tests automatizados:** 43 (GitHub Actions CI)
+**Entradas en bitácora:** 24 (v1=9, v2=15; incluye el registro de este cierre)
 
 ---
 
@@ -57,7 +57,6 @@ No es una blockchain. No es un SaaS en la nube. Es un ledger local (append-only)
 ├── CONTINUIDAD.md           <- ESTE DOCUMENTO
 ├── README.md                <- One-Pager público (Inglés)
 ├── KANBAN.md                <- Tablero vivo de tareas (reglas y cola)
-├── BITACORA.jsonl           <- Cadena de evidencia (append-only, 19 entradas)
 ├── LICENSE / LICENSE-DOCS.md<- MIT (código) / CC-BY 4.0 (docs)
 │
 ├── docs/
@@ -68,6 +67,7 @@ No es una blockchain. No es un SaaS en la nube. Es un ledger local (append-only)
 │   └── IDENTIDAD-VISUAL-SALEM-STTM.md
 │
 ├── scripts/
+│   ├── rutas.py             <- Fuente única de verdad de rutas (K-002)
 │   ├── registrar.py         <- Bitácora (hash/HMAC/Ed25519)
 │   ├── verificar.py         <- Cadena + schemas v1/v2 + firmas
 │   ├── auditar.py           <- Privacidad + integridad + meta.json + manifiesto
@@ -76,11 +76,15 @@ No es una blockchain. No es un SaaS en la nube. Es un ledger local (append-only)
 │   ├── auditoria_meta.py    <- Metadatos de auditoría (ADR-003)
 │   └── servidor.py          <- API local + estáticos (ADR-002)
 │
-├── tests/                   <- 40 tests (unitarios, integración, endpoints)
+├── tests/                   <- 43 tests (unitarios, integración, endpoints, paridad K-002)
 ├── web/                     <- Visor/UI (index.html, app.js v3, style.css, assets)
 ├── auditorias/              <- Una carpeta por auditoría: reporte + meta + manifiesto
 └── data/
     ├── proyectos.jsonl      <- Catálogo de proyectos
+    ├── proyectos/
+    │   └── 1-STTM/
+    │       └── BITACORA.jsonl  <- Cadena de evidencia (append-only, 24 entradas)
+    ├── backups/             <- Backups con timestamp (no se borran)
     ├── claves/              <- Ed25519 (privada excluida por .gitignore)
     └── estrategia/          <- Notas locales con nombres (excluida)
 ```
@@ -148,7 +152,7 @@ Lo deshabilitado no se muestra (ni gris ni tachado). El selector de modo siempre
 
 ### Próximos pasos
 1. Selector de proyecto en la UI (segundo proyecto del catálogo).
-2. Migración de la bitácora a `data/proyectos/1-STTM/` (ADR-003 §3.5).
+2. ~~Migración de la bitácora~~ — HECHO (K-002, STTM-0.20): vive en `data/proyectos/1-STTM/`.
 3. Tests de render de UI (o declaración formal de que quedan manuales).
 4. Registro de documentos estilo GOB-005 (el tablero vivo es KANBAN.md).
 5. Testigo externo manual del fingerprint de la clave (fuera de GitHub), por el autor.

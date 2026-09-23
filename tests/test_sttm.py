@@ -18,9 +18,10 @@ class STTMTestCase(unittest.TestCase):
         self.raiz = Path(self.tmpdir)
         (self.raiz / "scripts").mkdir()
         (self.raiz / "auditorias").mkdir()
-        (self.raiz / "BITACORA.jsonl").write_text("", encoding="utf-8")
+        (self.raiz / "data" / "proyectos" / "1-STTM").mkdir(parents=True, exist_ok=True)
+        (self.raiz / "data" / "proyectos" / "1-STTM" / "BITACORA.jsonl").write_text("", encoding="utf-8")
         
-        for script in ["registrar.py", "verificar.py", "auditar.py", "firma.py", "proyectos.py", "auditoria_meta.py"]:
+        for script in ["rutas.py", "registrar.py", "verificar.py", "auditar.py", "firma.py", "proyectos.py", "auditoria_meta.py"]:
             dst = self.raiz / "scripts" / script
             dst.write_text((SCRIPTS_DIR / script).read_text(encoding="utf-8"), encoding="utf-8")
         
@@ -42,13 +43,13 @@ class TestRegistrar(STTMTestCase):
     def test_primer_registro(self):
         r = self.correr_script("registrar.py", "Hito 1", "Test")
         self.assertEqual(r.returncode, 0)
-        e = json.loads((self.raiz / "BITACORA.jsonl").read_text().splitlines()[0])
+        e = json.loads((self.raiz / "data" / "proyectos" / "1-STTM" / "BITACORA.jsonl").read_text().splitlines()[0])
         self.assertEqual(e["hash_prev"], "0" * 64)
 
     def test_encadenamiento(self):
         self.correr_script("registrar.py", "Hito 1", "Test")
         self.correr_script("registrar.py", "Hito 2", "Test")
-        lineas = (self.raiz / "BITACORA.jsonl").read_text().splitlines()
+        lineas = (self.raiz / "data" / "proyectos" / "1-STTM" / "BITACORA.jsonl").read_text().splitlines()
         e1, e2 = json.loads(lineas[0]), json.loads(lineas[1])
         self.assertEqual(e2["hash_prev"], e1["hash"])
 
@@ -61,7 +62,7 @@ class TestVerificar(STTMTestCase):
 
     def test_detecta_alteracion(self):
         self.correr_script("registrar.py", "Hito 1", "Original")
-        bitacora = self.raiz / "BITACORA.jsonl"
+        bitacora = self.raiz / "data" / "proyectos" / "1-STTM" / "BITACORA.jsonl"
         bitacora.write_text(bitacora.read_text().replace("Original", "Hackeado"))
         r = self.correr_script("verificar.py")
         self.assertEqual(r.returncode, 1)

@@ -39,7 +39,7 @@ from urllib.parse import urlparse, parse_qs
 RAIZ = Path(os.environ.get("STTM_ROOT", Path(__file__).resolve().parent.parent))
 WEB = RAIZ / "web"
 SCRIPTS = RAIZ / "scripts"
-BITACORA = RAIZ / "BITACORA.jsonl"
+from rutas import BITACORA  # K-002: fuente única de verdad de rutas
 DOCS = RAIZ / "docs"
 AUDITORIAS = RAIZ / "auditorias"
 
