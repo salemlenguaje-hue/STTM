@@ -83,7 +83,10 @@ evaluadores externos.
 **Evidencia:** entrada #21 de bitácora, commit STTM-0.16 y
 docs/06-seguridad/ANCLAJE-CLAVE-ED25519.md con fingerprint SHA-256.
 CI verifica ed25519 completo desde ese commit.
-**Pendiente derivado:** testigo externo manual fuera de GitHub (autor).
+**Pendiente derivado:** cerrado — testigo #1 (email Gmail, 2026-09-23 18:10)
+asentado en la entrada #23, y testigo #2 (sello OpenTimestamps, 18:43)
+en la entrada #22 y en el repo. Resta solo el upgrade de Bitcoin,
+que se anotará como fila de historial cuando confirme.
 
 ---
 *Tablero vivo. Se actualiza en el mismo commit que el trabajo que mueve tarjetas.*
