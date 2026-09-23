@@ -1,0 +1,155 @@
+:root {
+    --bg: #0A0A0A;
+    --bg-panel: #111111;
+    --principal: #39FF14;
+    --secundario: #00FFFF;
+    --texto: #E0E0E0;
+    --texto-dim: #888888;
+    --borde: #333333;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    background-color: var(--bg);
+    color: var(--texto);
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.6;
+    padding: 1rem;
+}
+
+header {
+    border-bottom: 1px solid var(--borde);
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+h1 { font-size: 1.5rem; color: var(--principal); }
+.accent { color: var(--secundario); }
+
+nav { display: flex; gap: 1rem; }
+
+.nav-btn {
+    background: transparent;
+    border: 1px solid var(--borde);
+    color: var(--texto);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.nav-btn.active {
+    border-color: var(--principal);
+    color: var(--principal);
+    box-shadow: 0 0 8px rgba(57, 255, 20, 0.2);
+}
+
+.nav-btn:hover { border-color: var(--secundario); color: var(--secundario); }
+
+h2 { color: var(--secundario); margin-bottom: 1rem; font-size: 1.2rem; }
+
+.lista { display: flex; flex-direction: column; gap: 1rem; }
+
+.tarjeta {
+    background: var(--bg-panel);
+    border: 1px solid var(--borde);
+    padding: 1rem;
+    border-radius: 4px;
+    transition: border-color 0.2s;
+}
+
+.tarjeta:hover { border-color: var(--principal); }
+
+.tarjeta h3 {
+    color: var(--principal);
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.tarjeta .meta { font-size: 0.8rem; color: var(--texto-dim); margin-bottom: 0.5rem; }
+.tarjeta p { margin-bottom: 1rem; }
+
+.acciones { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.btn-copiar {
+    background: transparent;
+    border: 1px solid var(--secundario);
+    color: var(--secundario);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.btn-copiar:hover { background: var(--secundario); color: var(--bg); }
+.btn-copiar.copiado { background: var(--principal); border-color: var(--principal); color: var(--bg); }
+
+.oculto { display: none !important; }
+
+.visor {
+    margin-top: 1rem;
+    background: var(--bg-panel);
+    padding: 1rem;
+    border: 1px solid var(--borde);
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+#cerrar-doc {
+    background: transparent;
+    border: 1px solid var(--principal);
+    color: var(--principal);
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+pre { white-space: pre-wrap; word-wrap: break-word; color: var(--texto); }
+
+@media (min-width: 768px) {
+    header { flex-direction: row; justify-content: space-between; align-items: center; }
+}
+
+/* --- Overlay de copiado manual (capa 3) --- */
+.overlay-copia {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 100;
+}
+
+.overlay-caja {
+    background: var(--bg-panel);
+    border: 1px solid var(--principal);
+    padding: 1rem;
+    width: 100%;
+    max-width: 600px;
+}
+
+.overlay-titulo { color: var(--principal); margin-bottom: 0.5rem; }
+.overlay-ayuda { color: var(--texto-dim); font-size: 0.85rem; margin-bottom: 0.75rem; }
+
+.overlay-texto {
+    width: 100%;
+    min-height: 10rem;
+    background: var(--bg);
+    color: var(--secundario);
+    border: 1px solid var(--borde);
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    resize: vertical;
+}
+
+.overlay-cerrar { margin-top: 0.75rem; }
