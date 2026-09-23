@@ -1,0 +1,9 @@
+{
+  "generado_utc": "2026-09-23T17:15:32Z",
+  "nota": "Manifiesto retroactivo. La auditoria original (AUD-20260923-165225) se ejecuto antes de que auditar.py v2 escribiera manifiesto.json (incidente 002). Hashes calculados sobre artefactos que no fueron modificados desde entonces.",
+  "archivos": {
+    "meta.json": "2c4b1ba3137032c7e48ca11407ba9e7210529b2535a1a2cddb396d2b54f62a4d",
+    "reporte.md": "63d044f73d241f11c0ef43c264dafb27758aeff7df2191ca8ee9840c29478882"
+  },
+  "bitacora_sha256": "885ce44644ec8ae07230145075a6ff8f4ef5f65f90a6922fbc5d0491fac860c1"
+}

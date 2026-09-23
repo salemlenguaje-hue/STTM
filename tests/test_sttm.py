@@ -20,7 +20,7 @@ class STTMTestCase(unittest.TestCase):
         (self.raiz / "auditorias").mkdir()
         (self.raiz / "BITACORA.jsonl").write_text("", encoding="utf-8")
         
-        for script in ["registrar.py", "verificar.py", "auditar.py", "firma.py"]:
+        for script in ["registrar.py", "verificar.py", "auditar.py", "firma.py", "proyectos.py", "auditoria_meta.py"]:
             dst = self.raiz / "scripts" / script
             dst.write_text((SCRIPTS_DIR / script).read_text(encoding="utf-8"), encoding="utf-8")
         

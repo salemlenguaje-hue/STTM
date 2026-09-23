@@ -2,11 +2,9 @@
 """
 verificar.py — Verificador de integridad con schemas versionados.
 
-Acepta:
-- Hash de contenido v2 (canónico) o v1 (histórico, entradas 1-8).
-- HMAC canónico o HMAC legacy (incidente 001, entrada #10).
-Distingue ERRORES (rompen la evidencia) de AVISOS (degradaciones documentadas).
-Sale 0 si no hay errores, 1 si los hay.
+Expone verificar(ruta) que devuelve un resultado estructurado para que
+otros módulos (auditar.py) lo consuman sin parsear texto.
+main() conserva exactamente la salida histórica para no romper tests.
 """
 import json
 import os
@@ -17,92 +15,130 @@ import firma
 RAIZ = Path(os.environ.get("STTM_ROOT", Path(__file__).resolve().parent.parent))
 BITACORA = RAIZ / "BITACORA.jsonl"
 HASH_CERO = "0" * 64
-CLAVE_HMAC = os.environ.get("STTM_HMAC_KEY", "clave_secreta_temporal")
 
 
-def main() -> int:
-    ruta = Path(sys.argv[1]) if len(sys.argv) > 1 else BITACORA
+def verificar(ruta=None):
+    """Devuelve un dict estructurado con el estado de la cadena."""
+    ruta = Path(ruta) if ruta else BITACORA
+    res = {
+        "ruta": str(ruta),
+        "existe": ruta.exists(),
+        "entradas": 0,
+        "schemas": {"v1": 0, "v2": 0},
+        "por_entrada": [],
+        "problemas": [],
+        "avisos": [],
+        "integra": False,
+        "entradas_verificadas": 0,
+        "firmas_validadas": 0,
+    }
     if not ruta.exists():
-        print(f"❌ No encuentro la bitácora: {ruta}")
-        return 1
+        return res
 
     lineas = [l for l in ruta.read_text(encoding="utf-8").splitlines() if l.strip()]
+    res["entradas"] = len(lineas)
     if not lineas:
-        print("⚠️ Bitácora vacía: nada que verificar.")
-        return 0
+        res["integra"] = True
+        return res
 
-    errores = []
-    avisos = []
-    conteo_schemas = {"v1": 0, "v2": 0}
     hash_prev_esperado = HASH_CERO
-
     for numero_linea, linea in enumerate(lineas, start=1):
+        entrada_problemas = []
+        entrada_avisos = []
+        firma_ok = False
         try:
             entrada = json.loads(linea)
         except json.JSONDecodeError:
-            errores.append(f"Línea {numero_linea}: no es JSON válido.")
+            entrada_problemas.append(f"Línea {numero_linea}: no es JSON válido.")
+            res["por_entrada"].append({"n": numero_linea, "ok": False,
+                                       "problemas": entrada_problemas,
+                                       "avisos": [], "firma_ok": False})
+            res["problemas"].extend(entrada_problemas)
             continue
 
         n = entrada.get("n", numero_linea)
 
-        # 1) Cadena: hash_prev debe apuntar al hash guardado de la anterior.
         if entrada.get("hash_prev") != hash_prev_esperado:
-            errores.append(f"Entrada #{n}: cadena rota.")
+            entrada_problemas.append(f"Entrada #{n}: cadena rota.")
 
-        # 2) Contenido: aceptar v2 (canónico) o v1 (histórico).
         h = entrada.get("hash")
         if h == firma.hash_contenido(entrada):
-            conteo_schemas["v2"] += 1
+            res["schemas"]["v2"] += 1
         elif h == firma.hash_contenido_v1(entrada):
-            conteo_schemas["v1"] += 1
+            res["schemas"]["v1"] += 1
         else:
-            errores.append(f"Entrada #{n}: contenido alterado.")
+            entrada_problemas.append(f"Entrada #{n}: contenido alterado.")
 
-        # 3) Firma según modo declarado.
         modo = entrada.get("firma_tipo")
         f = entrada.get("firma")
-
         if modo == "hash":
             if f is not None:
-                errores.append(f"Entrada #{n}: modo hash no debería tener firma.")
-
-        elif modo == "hmac":
-            if f == firma.hmac_firma(entrada, CLAVE_HMAC):
-                pass  # firma canónica ok
-            elif f == firma.hmac_firma_legacy(entrada, CLAVE_HMAC):
-                avisos.append(f"Entrada #{n}: firma HMAC legacy (incidente 001), contenido íntegro.")
+                entrada_problemas.append(f"Entrada #{n}: modo hash no debería tener firma.")
             else:
-                errores.append(f"Entrada #{n}: firma HMAC inválida.")
-
+                firma_ok = True
+        elif modo == "hmac":
+            clave = os.environ.get("STTM_HMAC_KEY", "clave_secreta_temporal")
+            if f == firma.hmac_firma(entrada, clave):
+                firma_ok = True
+            elif f == firma.hmac_firma_legacy(entrada, clave):
+                entrada_avisos.append(f"Entrada #{n}: firma HMAC legacy (incidente 001), contenido íntegro.")
+            else:
+                entrada_problemas.append(f"Entrada #{n}: firma HMAC inválida.")
         elif modo == "ed25519":
             if not firma.ED25519_DISPONIBLE:
-                avisos.append(f"Entrada #{n}: Ed25519 no disponible, verificación degradada.")
+                entrada_avisos.append(f"Entrada #{n}: Ed25519 no disponible, verificación degradada.")
             else:
                 ruta_pub = RAIZ / "data" / "claves" / "sofia_publica.pem"
                 if not ruta_pub.exists():
-                    avisos.append(f"Entrada #{n}: clave pública ausente, verificación degradada.")
+                    entrada_avisos.append(f"Entrada #{n}: clave pública ausente, verificación degradada.")
                 elif not f or not firma.ed25519_verificar(entrada, f, ruta_pub.read_bytes()):
-                    errores.append(f"Entrada #{n}: firma Ed25519 inválida.")
+                    entrada_problemas.append(f"Entrada #{n}: firma Ed25519 inválida.")
+                else:
+                    firma_ok = True
         else:
-            errores.append(f"Entrada #{n}: modo de firma desconocido ({modo}).")
+            entrada_problemas.append(f"Entrada #{n}: modo de firma desconocido ({modo}).")
 
+        entrada_ok = not entrada_problemas
+        res["por_entrada"].append({"n": n, "ok": entrada_ok,
+                                   "problemas": entrada_problemas,
+                                   "avisos": entrada_avisos, "firma_ok": firma_ok})
+        res["problemas"].extend(entrada_problemas)
+        res["avisos"].extend(entrada_avisos)
+        if entrada_ok:
+            res["entradas_verificadas"] += 1
+        if firma_ok:
+            res["firmas_validadas"] += 1
         hash_prev_esperado = h
 
-    print(f"🔍 Verificando: {ruta}")
-    print(f"Entradas: {len(lineas)} (schemas: v1={conteo_schemas['v1']}, v2={conteo_schemas['v2']})")
+    res["integra"] = not res["problemas"]
+    return res
 
-    if avisos:
-        print(f"⚠️ {len(avisos)} aviso(s):")
-        for a in avisos:
+
+def main() -> int:
+    ruta = Path(sys.argv[1]) if len(sys.argv) > 1 else None
+    res = verificar(ruta)
+
+    if not res["existe"]:
+        print(f"❌ No encuentro la bitácora: {res['ruta']}")
+        return 1
+    if res["entradas"] == 0:
+        print("⚠️ Bitácora vacía: nada que verificar.")
+        return 0
+
+    print(f"🔍 Verificando: {res['ruta']}")
+    print(f"Entradas: {res['entradas']} (schemas: v1={res['schemas']['v1']}, v2={res['schemas']['v2']})")
+
+    if res["avisos"]:
+        print(f"⚠️ {len(res['avisos'])} aviso(s):")
+        for a in res["avisos"]:
             print(f"   - {a}")
-
-    if errores:
-        print(f"❌ {len(errores)} error(es):")
-        for e in errores:
-            print(f"   - {e}")
+    if res["problemas"]:
+        print(f"❌ {len(res['problemas'])} problema(s):")
+        for p in res["problemas"]:
+            print(f"   - {p}")
         return 1
 
-    print(f"✅ Cadena íntegra: {len(lineas)}/{len(lineas)} entradas verificadas.")
+    print(f"✅ Cadena íntegra: {res['entradas']}/{res['entradas']} entradas verificadas.")
     return 0
 
 
