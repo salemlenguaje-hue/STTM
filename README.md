@@ -54,4 +54,7 @@ python scripts/registrar.py "Experiment A/B started" "Testing prompt injection r
 ## 7. License & Authorship
 Created by **Martín José Dalberto** (Argentina, 2026).  
 Part of the broader [Salem Ecosystem](https://github.com/salemlenguaje-hue).  
-*License: MIT (Code) / CC-BY 4.0 (Documentation).*
+**Licenses (real files in this repo):**
+- Code (`scripts/`, `tests/`, `web/`): [MIT License](LICENSE) — Copyright (c) 2026 Martín José Dalberto.
+- Documentation (`README.md`, `docs/`, report templates): [CC-BY 4.0](LICENSE-DOCS.md).
+- Salem isolog / trademark: not licensed; all rights reserved (INPI registration).
