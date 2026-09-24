@@ -127,7 +127,9 @@ def ceremonia_claves():
     """Genera y guarda el par de claves en data/claves/."""
     CLAVES_DIR.mkdir(parents=True, exist_ok=True)
     privada_pem, publica_pem = generar_claves_ed25519()
-    (CLAVES_DIR / "sofia_privada.pem").write_bytes(privada_pem)
+    ruta_priv = CLAVES_DIR / "sofia_privada.pem"
+    ruta_priv.write_bytes(privada_pem)
+    os.chmod(ruta_priv, 0o600)
     (CLAVES_DIR / "sofia_publica.pem").write_bytes(publica_pem)
     print(f"✅ Clave privada en: {CLAVES_DIR / 'sofia_privada.pem'} (NUNCA subir al repo)")
     print(f"✅ Clave pública en: {CLAVES_DIR / 'sofia_publica.pem'} (publicable)")

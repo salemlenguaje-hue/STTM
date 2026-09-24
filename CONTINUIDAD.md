@@ -6,8 +6,8 @@
 **Última actualización:** 2026-09-23
 **Versión del proyecto:** 0.3.0 (Interfaz ADR-002 implementada)
 **Entorno de desarrollo:** Termux (Android) / Linux / macOS
-**Tests automatizados:** 60 (GitHub Actions CI)
-**Entradas en bitácora:** 28 (v1=9, v2=19; incluye el registro de este cierre)
+**Tests automatizados:** 70 (GitHub Actions CI)
+**Entradas en bitácora:** 30 (v1=9, v2=21; incluye el registro de este cierre)
 
 ---
 
@@ -130,6 +130,8 @@ Lo deshabilitado no se muestra (ni gris ni tachado). El selector de modo siempre
 ❌ **Timestamping externo con testigos:** no implementado (capa siguiente al anclaje de clave).
 ❌ **Render Markdown en vivo y WYSIWYG:** no prometidos (ADR-002).
 ❌ **Registro de documentos estilo GOB-005:** pendiente (KANBAN.md ya existe y gobierna la cola).
+❌ **Append O(n) por registro (H6):** leer_ultima_entrada recorre toda la bitácora; aceptable a escala actual, deuda declarada.
+❌ **Canonicalización v2 específica de Python (H7):** un verificador externo deberá replicar separadores exactos o esperar un schema v3; no tocar sin incidente documentado.
 
 ---
 

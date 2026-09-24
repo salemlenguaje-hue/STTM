@@ -31,6 +31,7 @@ class TestIntegracion(unittest.TestCase):
                 (SCRIPTS_DIR / s).read_text(encoding="utf-8"), encoding="utf-8")
         self.entorno = os.environ.copy()
         self.entorno["STTM_ROOT"] = str(self.raiz)
+        self.entorno["STTM_HMAC_KEY"] = "clave_test"  # H3: HMAC requiere clave explícita
 
     def tearDown(self):
         import shutil
@@ -64,7 +65,8 @@ class TestIntegracion(unittest.TestCase):
              "detalle": "x", "archivos": [], "commit_ref": None,
              "firma_tipo": "hmac", "firma": None, "hash_prev": "0" * 64}
         e["hash"] = firma.hash_contenido(e)
-        e["firma"] = firma.hmac_firma_legacy(e, "clave_secreta_temporal")
+        clave = self.entorno.get("STTM_HMAC_KEY", "clave_secreta_temporal")
+        e["firma"] = firma.hmac_firma_legacy(e, clave)
         (self.raiz / "data" / "proyectos" / "1-STTM" / "BITACORA.jsonl").write_text(
             json.dumps(e, ensure_ascii=False) + "\n", encoding="utf-8")
         r = self.correr("verificar.py")
