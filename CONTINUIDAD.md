@@ -7,7 +7,7 @@
 **Versión del proyecto:** 0.3.0 (Interfaz ADR-002 implementada)
 **Entorno de desarrollo:** Termux (Android) / Linux / macOS
 **Tests automatizados:** 55 (GitHub Actions CI)
-**Entradas en bitácora:** 25 (v1=9, v2=16; incluye el registro de este cierre)
+**Entradas en bitácora:** 27 (v1=9, v2=18; incluye el registro de este cierre)
 
 ---
 
@@ -61,7 +61,7 @@ No es una blockchain. No es un SaaS en la nube. Es un ledger local (append-only)
 │
 ├── docs/
 │   ├── 00-gobernanza/       <- GOB-STTM-001
-│   ├── 01-metodo/           <- One-Pagers EN/ES
+│   ├── 01-metodo/           <- One-Pagers EN/ES + nota biográfica del autor (ES)
 │   ├── 02-arquitectura/     <- ADR-001, ADR-002 (+addendum 3.6), ADR-003
 │   ├── 05-ui/               <- PUNTOS-CRITICOS-UX.md (documento vivo)
 │   └── IDENTIDAD-VISUAL-SALEM-STTM.md

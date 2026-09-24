@@ -6,6 +6,43 @@
 
 > *Note: This English document is the reference for international evaluation and grants. The author's native engineering language is Spanish; internal governance documents (ADRs, GOBs) and the Spanish One-Pager are available in `docs/`.*
 
+## Background & Origin — read this before judging the commit history
+
+STTM did not start yesterday. It consolidates **more than two years** of
+methodological work, engineering, and hard lessons from the author's
+earlier projects:
+
+- **Sofía Salem** — a cognitive-architecture experiment (80+ signed ledger
+  entries, a publicly documented retraction, 700+ automated tests) where
+  the traceability method was stress-tested in real practice.
+- **Salem language toolchain** — a from-scratch compiler and runtime
+  (lexer, parser, semantic analysis, MIR, C/Arduino backends, own
+  persistence layer), built solo, which supplied the engineering
+  discipline this repository inherits.
+- **Alejandra** — a second application of the method, in development.
+
+The dense commit history you see here is **integration and consolidation
+work**, not the beginning of development: battle-tested components,
+formats and lessons were assembled into this coherent framework. The
+method was applied, audited and corrected in real use — including
+documented failures — before being packaged as STTM.
+
+**Why "Salem"?** It is the family surname of the author's wife and
+daughters. No historical or mystical connotation is intended.
+
+## About the Author
+
+**Martín José Dalberto** — 41 years old, born and based in Misiones,
+Argentina. Independent developer. Self-taught by choice and by context:
+learned by reading documentation, breaking things and fixing them.
+Works from Termux on an Android phone, with mate, in his home province.
+
+He sustains three intertwined projects (Salem, Sofía, STTM) that form a
+research ecosystem on verifiable traceability and artificial intelligence.
+No team yet — but there is method: a signed ledger, external witnesses,
+documented incidents, and the conviction that a well-documented error is
+worth more than an unaudited success.
+
 ## 1. The Problem
 In AI safety and agent evaluation, metrics, logs, and experimental results are often stored in mutable databases, ephemeral notebooks, or plain text files. When the stakes are high—such as publishing safety benchmarks, auditing model behavior, or applying for research grants—the integrity of the evaluation trail is as critical as the model itself. 
 
