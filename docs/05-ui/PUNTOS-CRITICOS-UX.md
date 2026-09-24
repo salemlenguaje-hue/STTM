@@ -117,3 +117,37 @@ etiqueta de codificación que su consumidor espera.
 
 ## Historial actualizado
 - 2026-09-23: PC-010 documentado y resuelto. Cierre del ciclo ADR-002.
+
+## PC-011 — Cabecera móvil con dos selectores desborda y recorta contenido
+**Estado:** Resuelto (media query de envoltura).
+**Observación:** en pantalla angosta (<720px) la fila de selector de
+proyecto + selector de modo + navegación no entraba: el contenido se
+recortaba por la izquierda ("ethod", "o demo K-001") con scroll horizontal.
+**Diagnóstico:** .cabecera y .selectores usaban flex sin wrap y
+.select-proyecto tenía min-width: 200px, forzando el desborde.
+**Mitigación:** media query max-width 720px: wrap en cabecera y selectores,
+selector de proyecto al 100% del ancho, navegación con wrap.
+**Lección:** todo elemento nuevo de la cabecera debe probarse en ancho
+móvil; la viewport de escritorio esconde desbordes.
+
+---
+
+## Historial actualizado
+- 2026-09-23: PC-011 documentado y resuelto. Cierre del ciclo K-001.
+
+## PC-011 — Cabecera móvil con dos selectores desborda y recorta contenido
+**Estado:** Resuelto (media query de envoltura).
+**Observación:** en pantalla angosta (<720px) la fila de selector de
+proyecto + selector de modo + navegación no entraba: el contenido se
+recortaba por la izquierda ("ethod", "o demo K-001") con scroll horizontal.
+**Diagnóstico:** .cabecera y .selectores usaban flex sin wrap y
+.select-proyecto tenía min-width: 200px, forzando el desborde.
+**Mitigación:** media query max-width 720px: wrap en cabecera y selectores,
+selector de proyecto al 100% del ancho, navegación con wrap.
+**Lección:** todo elemento nuevo de la cabecera debe probarse en ancho
+móvil; la viewport de escritorio esconde desbordes.
+
+---
+
+## Historial actualizado
+- 2026-09-23: PC-011 documentado y resuelto. Cierre del ciclo K-001.

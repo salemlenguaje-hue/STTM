@@ -22,13 +22,6 @@ cada tarjeta es un compromiso verificable, no un post-it.
 
 ## Pendientes (próximos pasos comprometidos)
 
-### K-001 — Selector de proyecto en la UI
-**Prioridad:** media.
-**Dependencia:** al menos un segundo proyecto activo en el catálogo.
-**Aceptación:** selector activo en cabecera con 2+ proyectos; al cambiar,
-cambian bitácora, documentos y auditorías vistas; 1+ test de endpoint
-cubriendo la selección.
-
 ### K-003 — Tests de render de UI o declaración formal de validación manual
 **Prioridad:** baja.
 **Aceptación:** tests/test_ui_render.py verde en CI, o entrada de bitácora
@@ -71,6 +64,15 @@ evaluadores externos.
 
 ### K-000 — Crear KANBAN.md y adoptar las reglas del tablero
 **Evidencia:** entrada #20 de bitácora y commit STTM-0.15.
+
+
+### K-001 — Selector de proyecto en la UI
+**Evidencia:** entrada #25 de bitácora y commit STTM-0.21. Selector en
+cabecera con 2+ proyectos reales (#1 STTM, #2 DEMO); al cambiar, cambian
+bitácora y auditorías (documentos quedan globales: divergencia declarada
+con la visión ADR-003). Tests de endpoint: test_k001_selector.py (4) y
+salud de input test_salud_input.py (8). Validado en dispositivo real:
+entrada creada desde la UI en el proyecto #2 y prueba móvil del PC-011.
 
 ### K-002 — Migración de la bitácora a data/proyectos/1-STTM/
 **Evidencia:** entrada #24 de bitácora y commit STTM-0.20. Tests de paridad

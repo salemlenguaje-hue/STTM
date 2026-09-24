@@ -1,18 +1,17 @@
 /**
- * app.js v3 — Visor STTM (ADR-002).
- * Fixes integrados:
- *  - PC-006: listeners de copiar con scope (solo la lista renderizada).
- *  - PC-009: auditorías sin meta.json se declaran con 📜, no crashean.
- *  - Guard de copiado si un botón no tiene dato asociado.
- *  - Manifiesto null-safe en el visor de paquete.
- *  - Datos de bitácora/auditorías renderizados con createElement +
- *    textContent (innerHTML con datos rompía atributos con comillas).
+ * app.js v4 — Visor STTM (ADR-002, K-001 multi-proyecto).
+ * 
+ * Cambios v4:
+ * - Selector de proyecto en cabecera con persistencia localStorage.
+ * - Todos los requests de evidencia pasan ?proyecto=N.
+ * - Al cambiar proyecto: recarga bitácora/auditorías, actualiza modo.
  */
 
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
 let proyectoActual = null;
+let proyectoSeleccionado = null;
 
 // ---------- utilidades ----------
 async function fetchJSON(url, options = {}) {
@@ -103,9 +102,33 @@ function aplicarModo(modo) {
   btnAud.classList.toggle('oculto', modo !== 'salem');
 }
 
-async function cargarProyecto() {
+async function cargarProyectos() {
   try {
     const data = await fetchJSON('/api/proyecto');
+    const selector = $('#proyecto-select');
+    selector.innerHTML = '';
+    data.activos.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.n;
+      opt.textContent = `#${p.n} ${p.ref_interna} — ${p.titulo}`;
+      selector.appendChild(opt);
+    });
+    // Restaurar selección de localStorage o usar el primero activo
+    const guardado = localStorage.getItem('sttm_proyecto');
+    if (guardado && data.activos.some(p => String(p.n) === guardado)) {
+      selector.value = guardado;
+    } else {
+      selector.value = data.activos[0].n;
+    }
+    proyectoSeleccionado = parseInt(selector.value);
+  } catch (err) {
+    mostrarMensaje('Error al cargar proyectos: ' + err.message, 'error');
+  }
+}
+
+async function cargarProyecto() {
+  try {
+    const data = await fetchJSON('/api/proyecto?n=' + proyectoSeleccionado);
     proyectoActual = data.proyecto;
     $('#modo-select').value = proyectoActual.nivel_actual;
     aplicarModo(proyectoActual.nivel_actual);
@@ -118,10 +141,18 @@ async function cargarProyecto() {
   }
 }
 
+$('#proyecto-select').addEventListener('change', async (e) => {
+  const nuevo = parseInt(e.target.value);
+  localStorage.setItem('sttm_proyecto', nuevo);
+  proyectoSeleccionado = nuevo;
+  await cargarProyecto();
+  mostrarMensaje(`Proyecto #${nuevo} seleccionado`, 'info');
+});
+
 // ---------- bitácora ----------
 async function cargarBitacora() {
   try {
-    const entradas = await fetchJSON('/api/bitacora');
+    const entradas = await fetchJSON('/api/bitacora?proyecto=' + proyectoSeleccionado);
     const lista = $('#lista-bitacora');
     lista.innerHTML = '';
     entradas.forEach(ent => {
@@ -201,7 +232,7 @@ async function verDocumento(ruta) {
 // ---------- auditorías ----------
 async function cargarAuditorias() {
   try {
-    const auds = await fetchJSON('/api/auditorias');
+    const auds = await fetchJSON('/api/auditorias?proyecto=' + proyectoSeleccionado);
     const lista = $('#lista-auditorias');
     lista.innerHTML = '';
     auds.forEach(aud => {
@@ -242,7 +273,7 @@ async function cargarAuditorias() {
 async function verAuditoria(carpeta) {
   try {
     const reporte = await fetchJSON('/api/reporte?carpeta=' + encodeURIComponent(carpeta));
-    const verif = await fetchJSON('/api/verificar-paquete?carpeta=' + encodeURIComponent(carpeta));
+    const verif = await fetchJSON('/api/verificar-paquete?carpeta=' + encodeURIComponent(carpeta) + '&proyecto=' + proyectoSeleccionado);
     $('#lista-auditorias').classList.add('oculto');
     $('#visor-auditoria').classList.remove('oculto');
     const cont = $('#contenido-auditoria');
@@ -264,7 +295,6 @@ async function verAuditoria(carpeta) {
       : '❌ Inválido: ' + (verif.manifiesto.detalles || []).join(', ');
     pMan.innerHTML = '<strong>Manifiesto:</strong> ' + lineaMan;
     cont.append(h3r, pre, h3v, pCad, pMan);
-    agregarBotonesExport(cont, reporte.carpeta, reporte.contenido, verif);
     if (verif.manifiesto && verif.manifiesto.nota_bitacora) {
       const pNota = document.createElement('p');
       pNota.className = 'meta';
@@ -310,6 +340,7 @@ $('#btn-cancelar-entrada').onclick = () => {
 $('#form-entrada').addEventListener('submit', async (e) => {
   e.preventDefault();
   const datos = {
+    proyecto: proyectoSeleccionado,
     titulo: $('#ent-titulo').value,
     detalle: $('#ent-detalle').value,
     archivos: $('#ent-archivos').value,
@@ -384,6 +415,7 @@ $('#btn-cancelar-auditoria').onclick = () => {
 $('#form-auditoria').addEventListener('submit', async (e) => {
   e.preventDefault();
   const datos = {
+    proyecto: proyectoSeleccionado,
     motivo: $('#aud-motivo').value,
     tipo: $('#aud-tipo').value
   };
@@ -440,108 +472,8 @@ $('#modo-select').addEventListener('change', async (e) => {
 });
 
 // ---------- inicio ----------
-cargarProyecto();
-
-// ---------- export y compartido (ADR-002 §3.6, MEJ-001) ----------
-function resumenExport(carpeta, contenido, verif) {
-  const estado = (contenido.match(/\*\*Estado final:\*\* (.+)/) || [])[1] || 'sin estado';
-  const cadena = (verif && verif.cadena)
-    ? (verif.cadena.integra ? 'íntegra (' + verif.cadena.verificadas + '/' + verif.cadena.entradas + ')' : 'ROTA')
-    : 'sin verificar';
-  return 'Reporte STTM ' + carpeta +
-    '\nEstado final: ' + estado +
-    '\nCadena de evidencia: ' + cadena +
-    '\nGenerado por STTM (Salem Traceability & Trust Method).' +
-    '\nEl reporte completo viaja como archivo adjunto.';
+async function inicio() {
+  await cargarProyectos();
+  await cargarProyecto();
 }
-
-function descargarReporte(carpeta, contenido) {
-  // BOM UTF-8: pista para visores de Android/Windows que
-  // decodifican .md como Latin-1 sin ella (mojibake observado).
-  const blob = new Blob(['\ufeff' + contenido], { type: 'text/markdown;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'STTM-reporte-' + carpeta + '.md';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
-  mostrarMensaje('Reporte descargado como STTM-reporte-' + carpeta + '.md', 'ok');
-}
-
-function mostrarMenuExport(carpeta, resumen) {
-  const overlay = document.createElement('div');
-  overlay.className = 'overlay-copia';
-  const caja = document.createElement('div');
-  caja.className = 'overlay-caja';
-  const t = document.createElement('h3');
-  t.className = 'overlay-titulo';
-  t.textContent = 'Enviar resumen del reporte';
-  const p = document.createElement('p');
-  p.className = 'overlay-ayuda';
-  p.textContent = 'Por límites de los mensajeros solo viaja el resumen. El reporte completo se descarga con el botón ⬇ y se adjunta a mano.';
-  const ta = document.createElement('textarea');
-  ta.className = 'overlay-texto';
-  ta.readOnly = true;
-  ta.value = resumen;
-  const fila = document.createElement('div');
-  fila.className = 'acciones';
-  const bMail = document.createElement('button');
-  bMail.className = 'btn-accion';
-  bMail.textContent = '✉ Email';
-  bMail.onclick = () => {
-    window.location.href = 'mailto:?subject=' +
-      encodeURIComponent('Reporte STTM ' + carpeta) +
-      '&body=' + encodeURIComponent(resumen);
-  };
-  const bWa = document.createElement('button');
-  bWa.className = 'btn-accion';
-  bWa.textContent = 'WhatsApp';
-  bWa.onclick = () => {
-    window.open('https://wa.me/?text=' + encodeURIComponent(resumen), '_blank');
-  };
-  const bCerrar = document.createElement('button');
-  bCerrar.className = 'btn-accion btn-secundario';
-  bCerrar.textContent = 'Cerrar';
-  bCerrar.onclick = () => overlay.remove();
-  fila.append(bMail, bWa, bCerrar);
-  caja.append(t, p, ta, fila);
-  overlay.appendChild(caja);
-  document.body.appendChild(overlay);
-}
-
-async function compartirReporte(carpeta, contenido, verif) {
-  const resumen = resumenExport(carpeta, contenido, verif);
-  if (navigator.share) {
-    try {
-      const archivo = new File(['\ufeff' + contenido], 'STTM-reporte-' + carpeta + '.md',
-        { type: 'text/markdown' });
-      if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
-        await navigator.share({ files: [archivo], title: 'Reporte STTM ' + carpeta });
-        return;
-      }
-      await navigator.share({ title: 'Reporte STTM ' + carpeta, text: resumen });
-      return;
-    } catch (err) {
-      if (err && err.name === 'AbortError') return; // la persona canceló
-      // degrada al nivel 3
-    }
-  }
-  mostrarMenuExport(carpeta, resumen);
-}
-
-function agregarBotonesExport(cont, carpeta, contenido, verif) {
-  const div = document.createElement('div');
-  div.className = 'acciones';
-  const bDesc = document.createElement('button');
-  bDesc.className = 'btn-accion';
-  bDesc.textContent = '⬇ Descargar reporte (.md)';
-  bDesc.onclick = () => descargarReporte(carpeta, contenido);
-  const bShare = document.createElement('button');
-  bShare.className = 'btn-accion btn-secundario';
-  bShare.textContent = '📤 Compartir / WhatsApp / email';
-  bShare.onclick = () => compartirReporte(carpeta, contenido, verif);
-  div.append(bDesc, bShare);
-  cont.appendChild(div);
-}
+inicio();

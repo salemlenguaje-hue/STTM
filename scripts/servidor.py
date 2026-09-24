@@ -1,27 +1,32 @@
 #!/usr/bin/env python3
 """
-servidor.py — API local + estáticos del visor STTM (ADR-002, v2).
+servidor.py — API local + estáticos del visor STTM (ADR-002, v3 multi-proyecto K-001).
+
+Cambios v3:
+- Todos los endpoints de evidencia aceptan ?proyecto=N (GET) o
+  "proyecto": N (POST). Por defecto, proyecto 1.
+- Los subprocess (registrar.py, auditar.py) reciben STTM_PROYECTO=N
+  solo en su propio entorno: sin estado global, sin carreras.
+- /api/auditorias filtra por meta.json proyecto_n; las auditorías
+  previas a ADR-003 (sin meta) se atribuyen al proyecto 1 (declarado).
+- Documentos (docs/) siguen siendo GLOBALES del repo: son gobernanza,
+  no evidencia por proyecto. Divergencia con la visión ADR-003 declarada.
 
 Lectura:
-  GET  /api/bitacora                    entradas (más reciente primero)
-  GET  /api/proyecto?n=                 estado del proyecto desde el catálogo
-  GET  /api/documentos                  lista de .md (docs/ + CONTINUIDAD.md)
-  GET  /api/documento?ruta=             contenido de un .md (texto plano)
-  GET  /api/auditorias                  carpetas con resumen de meta.json
-  GET  /api/reporte?carpeta=            reporte.md de una auditoría
-  GET  /api/verificar-paquete?carpeta=  cadena + integridad del manifiesto
-
+  GET  /api/bitacora?proyecto=N
+  GET  /api/proyecto?n=N
+  GET  /api/documentos | /api/documento?ruta=      (globales)
+  GET  /api/auditorias?proyecto=N
+  GET  /api/reporte?carpeta=
+  GET  /api/verificar-paquete?carpeta=&proyecto=N
 Escritura:
-  POST /api/registrar                   nueva entrada de bitácora
-  POST /api/modo                        cambio de nivel del proyecto
-  POST /api/documento                   crear o actualizar documento .md
-  POST /api/auditar                     ejecutar auditoría
+  POST /api/registrar   {"proyecto": N, ...}
+  POST /api/modo        {"n": N, "nivel": ...}
+  POST /api/documento   (global)
+  POST /api/auditar     {"proyecto": N, ...}
 
-Seguridad v2:
-- Sin shell: todos los subprocess con lista de argumentos.
-- Rutas validadas: sin '..', sufijo .md, dentro de docs/ o CONTINUIDAD.md.
-- Nombres de carpeta de auditoría validados con regex estricta.
-- Loopback por defecto; --movil abre a la red local (decisión declarada).
+Seguridad: sin shell; rutas .md solo bajo docs/ o CONTINUIDAD.md sin '..';
+nombres de carpeta de auditoría con regex estricta; loopback por defecto.
 """
 import argparse
 import hashlib
@@ -39,21 +44,23 @@ from urllib.parse import urlparse, parse_qs
 RAIZ = Path(os.environ.get("STTM_ROOT", Path(__file__).resolve().parent.parent))
 WEB = RAIZ / "web"
 SCRIPTS = RAIZ / "scripts"
-from rutas import BITACORA  # K-002: fuente única de verdad de rutas
 DOCS = RAIZ / "docs"
 AUDITORIAS = RAIZ / "auditorias"
 
 sys.path.insert(0, str(SCRIPTS))
-import verificar as mod_verificar  # verificación estructurada, sin parsear texto
+import verificar as mod_verificar  # verificación estructurada
+import rutas                       # resolución de carpetas por proyecto
 
 RE_CARPETA = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{6}$")
 MODOS = ("simple", "continuidad", "salem")
 MODOS_FIRMA = ("hash", "hmac", "ed25519")
 
 
-def correr_script(nombre, *args):
+def correr_script(nombre, *args, proyecto=None):
     env = os.environ.copy()
     env["STTM_ROOT"] = str(RAIZ)
+    if proyecto is not None:
+        env["STTM_PROYECTO"] = str(proyecto)
     return subprocess.run(
         [sys.executable, str(SCRIPTS / nombre), *args],
         capture_output=True, text=True, env=env,
@@ -69,7 +76,6 @@ def sha256_archivo(ruta):
 
 
 def ruta_documento_valida(ruta_rel):
-    """Devuelve Path segura o None. Solo .md bajo docs/ o CONTINUIDAD.md."""
     if not ruta_rel or ".." in ruta_rel.split("/"):
         return None
     candidata = (RAIZ / ruta_rel).resolve()
@@ -103,12 +109,19 @@ def slug(texto):
     return s or "sin-titulo"
 
 
+def proyecto_de_query(q, clave="proyecto"):
+    try:
+        return int(q.get(clave, ["1"])[0])
+    except ValueError:
+        return None
+
+
 class STTMHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(WEB), **kwargs)
 
     def log_message(self, fmt, *a):
-        pass  # silencio el log por defecto
+        pass
 
     def send_json(self, obj, code=200):
         body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
@@ -140,9 +153,16 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
         q = parse_qs(parsed.query)
 
         if parsed.path == "/api/bitacora":
+            n = proyecto_de_query(q)
+            if n is None:
+                return self.send_json({"error": "proyecto invalido"}, 400)
+            try:
+                ruta_bit = rutas.bitacora_de(n)
+            except RuntimeError as e:
+                return self.send_json({"error": str(e)}, 404)
             entradas = []
-            if BITACORA.exists():
-                for linea in BITACORA.read_text(encoding="utf-8").splitlines():
+            if ruta_bit.exists():
+                for linea in ruta_bit.read_text(encoding="utf-8").splitlines():
                     if linea.strip():
                         entradas.append(json.loads(linea))
             return self.send_json(entradas[::-1])
@@ -174,29 +194,33 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
             return self.send_texto(ruta.read_text(encoding="utf-8"))
 
         if parsed.path == "/api/auditorias":
+            n = proyecto_de_query(q)
+            if n is None:
+                return self.send_json({"error": "proyecto invalido"}, 400)
             salida = []
             if AUDITORIAS.exists():
                 for carpeta in sorted(AUDITORIAS.iterdir(), reverse=True):
                     if not carpeta.is_dir() or not RE_CARPETA.match(carpeta.name):
                         continue
-                    item = {"carpeta": carpeta.name}
                     meta = carpeta / "meta.json"
+                    m = None
                     if meta.exists():
                         try:
                             m = json.loads(meta.read_text(encoding="utf-8"))
-                            item.update({
-                                "auditoria_id": m.get("auditoria_id"),
-                                "fecha": m.get("fecha_utc"),
-                                "motivo": m.get("motivo"),
-                                "estado": m.get("estado_final"),
-                                "hallazgos": m.get("hallazgos"),
-                            })
                         except Exception:
-                            item["error_meta"] = True
-                    else:
-                        # Auditorias previas a ADR-003 no tienen meta.json:
-                        # se declaran como sin metadatos; no se inventan datos.
-                        item["sin_meta"] = True
+                            m = None
+                    # Sin meta (pre ADR-003): se atribuyen al proyecto 1 (declarado).
+                    if (m or {}).get("proyecto_n", 1) != n:
+                        continue
+                    item = {"carpeta": carpeta.name, "sin_meta": m is None}
+                    if m:
+                        item.update({
+                            "auditoria_id": m.get("auditoria_id"),
+                            "fecha": m.get("fecha_utc"),
+                            "motivo": m.get("motivo"),
+                            "estado": m.get("estado_final"),
+                            "hallazgos": m.get("hallazgos"),
+                        })
                     salida.append(item)
             return self.send_json(salida)
 
@@ -214,8 +238,15 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
             nombre = q.get("carpeta", [""])[0]
             if not RE_CARPETA.match(nombre):
                 return self.send_json({"error": "carpeta inválida"}, 400)
+            n = proyecto_de_query(q)
+            if n is None:
+                return self.send_json({"error": "proyecto invalido"}, 400)
+            try:
+                ruta_bit = rutas.bitacora_de(n)
+            except RuntimeError as e:
+                return self.send_json({"error": str(e)}, 404)
             carpeta = AUDITORIAS / nombre
-            res = mod_verificar.verificar()
+            res = mod_verificar.verificar(ruta_bit)
             cadena = {
                 "integra": res["integra"],
                 "entradas": res["entradas"],
@@ -238,7 +269,7 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
                         ok = False
                 nota_bit = None
                 bit_guardado = m.get("bitacora_sha256")
-                bit_actual = sha256_archivo(BITACORA) if BITACORA.exists() else None
+                bit_actual = sha256_archivo(ruta_bit) if ruta_bit.exists() else None
                 if bit_guardado and bit_actual != bit_guardado:
                     nota_bit = ("la bitácora cambió después de esta auditoría "
                                 "(esperado si hubo registros posteriores)")
@@ -263,6 +294,12 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
                 return self.send_json({"error": "titulo y detalle son obligatorios"}, 400)
             if modo not in MODOS_FIRMA:
                 return self.send_json({"error": f"modo de firma inválido: {modo}"}, 400)
+            proyecto = datos.get("proyecto")
+            if proyecto is not None:
+                try:
+                    proyecto = int(proyecto)
+                except (TypeError, ValueError):
+                    return self.send_json({"error": "proyecto invalido"}, 400)
             args = [titulo, detalle, "--modo-firma", modo]
             archivos = (datos.get("archivos") or "").strip()
             if archivos:
@@ -270,7 +307,7 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
             commit = (datos.get("commit") or "").strip()
             if commit:
                 args += ["--commit", commit]
-            r = correr_script("registrar.py", *args)
+            r = correr_script("registrar.py", *args, proyecto=proyecto)
             return self.send_json({"ok": r.returncode == 0, "rc": r.returncode,
                                    "stdout": r.stdout.strip(),
                                    "stderr": r.stderr.strip()})
@@ -289,7 +326,8 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
                                f"Cambio de modo del proyecto #{n} a {nivel}",
                                f"Solicitado desde la interfaz. Motivo: {motivo}",
                                "--archivos", "data/proyectos.jsonl",
-                               "--modo-firma", "hash")
+                               "--modo-firma", "hash",
+                               proyecto=int(n))
             return self.send_json({"ok": True, "stdout": r.stdout.strip(),
                                    "registro": r2.stdout.strip()})
 
@@ -336,8 +374,13 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
             tipo = datos.get("tipo", "rapida")
             if tipo not in ("rapida", "estandar", "profunda"):
                 return self.send_json({"error": "tipo inválido"}, 400)
-            r = correr_script("auditar.py", "--proyecto", "1",
-                              "--motivo", motivo, "--tipo", tipo)
+            try:
+                proyecto = int(datos.get("proyecto", 1))
+            except (TypeError, ValueError):
+                return self.send_json({"error": "proyecto invalido"}, 400)
+            r = correr_script("auditar.py", "--proyecto", str(proyecto),
+                              "--motivo", motivo, "--tipo", tipo,
+                              proyecto=proyecto)
             carpeta = None
             if AUDITORIAS.exists():
                 dirs = [d.name for d in sorted(AUDITORIAS.iterdir(), reverse=True)

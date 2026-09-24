@@ -300,3 +300,46 @@ form select:focus {
 .ayuda strong {
   color: var(--azul-oscuro);
 }
+
+/* --- Contenedor de selectores (proyecto + modo) --- */
+.selectores {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.selector-proyecto {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.selector-proyecto label {
+  font-size: 0.82rem;
+  color: var(--tinta-suave);
+}
+.select-proyecto {
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font: 600 0.82rem 'Inter', sans-serif;
+  color: var(--tinta);
+  cursor: pointer;
+  min-width: 200px;
+}
+.select-proyecto:focus {
+  outline: none;
+  border-color: var(--azul);
+}
+
+/* --- PC-011: en pantallas angostas la cabecera con dos selectores
+       desbordaba y recortaba contenido por la izquierda. La fila
+       ahora envuelve y los selectores ceden ancho. --- */
+@media (max-width: 720px) {
+  .cabecera { flex-wrap: wrap; }
+  .selectores { flex-wrap: wrap; width: 100%; }
+  .selector-proyecto { flex: 1 1 100%; }
+  .select-proyecto { min-width: 0; width: 100%; }
+  .selector-modo { flex: 1; }
+  .select-modo { min-width: 0; }
+  nav { flex-wrap: wrap; }
+}

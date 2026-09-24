@@ -6,8 +6,8 @@
 **Última actualización:** 2026-09-23
 **Versión del proyecto:** 0.3.0 (Interfaz ADR-002 implementada)
 **Entorno de desarrollo:** Termux (Android) / Linux / macOS
-**Tests automatizados:** 43 (GitHub Actions CI)
-**Entradas en bitácora:** 24 (v1=9, v2=15; incluye el registro de este cierre)
+**Tests automatizados:** 55 (GitHub Actions CI)
+**Entradas en bitácora:** 25 (v1=9, v2=16; incluye el registro de este cierre)
 
 ---
 
@@ -76,7 +76,7 @@ No es una blockchain. No es un SaaS en la nube. Es un ledger local (append-only)
 │   ├── auditoria_meta.py    <- Metadatos de auditoría (ADR-003)
 │   └── servidor.py          <- API local + estáticos (ADR-002)
 │
-├── tests/                   <- 43 tests (unitarios, integración, endpoints, paridad K-002)
+├── tests/                   <- 55 tests (unitarios, integración, endpoints, paridad K-002, selector K-001)
 ├── web/                     <- Visor/UI (index.html, app.js v3, style.css, assets)
 ├── auditorias/              <- Una carpeta por auditoría: reporte + meta + manifiesto
 └── data/
@@ -119,6 +119,7 @@ Lo deshabilitado no se muestra (ni gris ni tachado). El selector de modo siempre
 ✅ Gobernanza: GOB-001, ADR-001/002/003, CONTINUIDAD, identidad visual documentada.
 ✅ Incidentes 001, 002 y UI-001 documentados con fix, tests y lecciones.
 ✅ Clave pública Ed25519 anclada en el repo (K-005): verificación completa por terceros y en CI.
+✅ Multi-proyecto: catálogo y carpetas por proyecto, selector en UI (K-001), bitácoras y auditorías aisladas.
 
 ### Lo que STTM NO es / deudas declaradas
 ❌ **No es un HSM:** no protege contra root con control del disco.
@@ -151,7 +152,7 @@ Lo deshabilitado no se muestra (ni gris ni tachado). El selector de modo siempre
 7. **UI en vivo:** `python scripts/servidor.py` (o `--movil`); cambios de `web/` se ven recargando; cambios de `scripts/` requieren reinicio.
 
 ### Próximos pasos
-1. Selector de proyecto en la UI (segundo proyecto del catálogo).
+1. ~~Selector de proyecto en la UI~~ — HECHO (K-001, STTM-0.21).
 2. ~~Migración de la bitácora~~ — HECHO (K-002, STTM-0.20): vive en `data/proyectos/1-STTM/`.
 3. Tests de render de UI (o declaración formal de que quedan manuales).
 4. Registro de documentos estilo GOB-005 (el tablero vivo es KANBAN.md).
