@@ -7,7 +7,7 @@
 **Versión del proyecto:** 0.3.0 (Interfaz ADR-002 implementada)
 **Entorno de desarrollo:** Termux (Android) / Linux / macOS
 **Tests automatizados:** 70 (GitHub Actions CI)
-**Entradas en bitácora:** 33 (v1=9, v2=24; incluye el registro de este cierre)
+**Entradas en bitácora:** 36 (v1=9, v2=27; incluye el registro de este cierre)
 
 ---
 
@@ -129,7 +129,7 @@ Lo deshabilitado no se muestra (ni gris ni tachado). El selector de modo siempre
 ❌ **Migración de `BITACORA.jsonl` a `data/proyectos/1-STTM/`:** pendiente (ADR-003 §3.5).
 ❌ **Timestamping externo con testigos:** no implementado (capa siguiente al anclaje de clave).
 ❌ **Render Markdown en vivo y WYSIWYG:** no prometidos (ADR-002).
-❌ **Registro de documentos estilo GOB-005:** pendiente (KANBAN.md ya existe y gobierna la cola).
+✅ **Registro de documentos estilo GOB-005 (K-004):** docs/00-gobernanza/REGISTRO-DOCS.md.
 ❌ **Append O(n) por registro (H6):** leer_ultima_entrada recorre toda la bitácora; aceptable a escala actual, deuda declarada.
 ❌ **Canonicalización v2 específica de Python (H7):** un verificador externo deberá replicar separadores exactos o esperar un schema v3; no tocar sin incidente documentado.
 

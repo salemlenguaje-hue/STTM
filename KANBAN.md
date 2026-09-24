@@ -23,10 +23,6 @@ cada tarjeta es un compromiso verificable, no un post-it.
 ## Pendientes (próximos pasos comprometidos)
 
 
-### K-004 — Registro de documentos estilo GOB-005
-**Prioridad:** baja.
-**Aceptación:** docs/00-gobernanza/REGISTRO-DOCS.md listando cada documento
-vivo con ID, versión, estado, responsable y enlace.
 
 ### K-006 — Actualización del documento de identidad Capa 2
 **Prioridad:** baja. **Responsable:** autor (Martín).
@@ -90,6 +86,12 @@ dispositivo real (no tests automatizados de render). Motivo: headless
 browser rompería el principio de stdlib únicamente y agregaría complejidad
 sin valor proporcional. Checklist de 8 puntos, frecuencia por commit,
 criterios de revisión declarados.
+
+### K-004 — Registro de documentos estilo GOB-005
+**Evidencia:** entrada #36 de bitácora y commit STTM-0.31. Documento
+docs/00-gobernanza/REGISTRO-DOCS.md que lista cada documento vivo del
+proyecto con ID, tipo, título, enlace, estado y responsable. Generado
+automáticamente recorriendo el repo; convenciones de ID declaradas.
 
 ### K-005 — Anclaje público de la clave Ed25519
 **Evidencia:** entrada #21 de bitácora, commit STTM-0.16 y
