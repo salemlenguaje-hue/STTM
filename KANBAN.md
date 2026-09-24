@@ -38,13 +38,6 @@ de bitácora que deje constancia de la nueva versión.
 
 ---
 
-### K-009 — Pase de documentación: motivos de la revisión de código y de las cabeceras
-**Prioridad:** media.
-**Aceptación:** documento o entradas de bitácora que expliquen los motivos de
-los hallazgos H1–H7 de la revisión del corazón criptográfico y de la
-convención de cabeceras de autoría; cada hallazgo aprobado queda con su
-fix, su test y su motivo asentado.
-**Nota:** diferido a pedido del autor para no frenar el avance.
 
 ---
 
@@ -117,3 +110,10 @@ inválida o título vacío); UI con botón '+ Proyecto', formulario modal y
 confirmación explícita; asiento en bitácora tras creación. Addendum 3.6 al
 ADR-003. Tests: test_k007_crear.py (5). Suite completa 60 tests verdes.
 PC-012 mitigado: el selector ofrece creación real.
+
+### K-009 — Pase de documentación: motivos de la revisión de código y de las cabeceras
+**Evidencia:** entrada #33 de bitácora y commit STTM-0.28. Documento
+docs/02-arquitectura/MOTIVOS-REVISION-CODIGO.md con motivos detallados de
+los 7 hallazgos de la revisión del corazón criptográfico (H1-H7) y de la
+convención de cabeceras de autoría. H1-H5 aplicados con test-first,
+H6-H7 declarados como deuda congelada. Lecciones de método documentadas.

@@ -7,7 +7,7 @@
 **Versión del proyecto:** 0.3.0 (Interfaz ADR-002 implementada)
 **Entorno de desarrollo:** Termux (Android) / Linux / macOS
 **Tests automatizados:** 70 (GitHub Actions CI)
-**Entradas en bitácora:** 31 (v1=9, v2=22; incluye el registro de este cierre)
+**Entradas en bitácora:** 33 (v1=9, v2=24; incluye el registro de este cierre)
 
 ---
 
