@@ -226,3 +226,32 @@ El proyecto que hoy vive en la raíz (STTM mismo) se convierte en la entrada #1 
 
 - v0.1, 2026-09-23: versión inicial del ADR, pendiente de revisión por el autor.
 - v0.2, 2026-09-23: terminología neutral (entidad evaluadora); slug de ejemplo sin referencias a entidades reales.
+
+## 3.6 Creación de proyectos desde la UI (v1) — addendum 2026-09-24
+
+**Estado:** implementado (K-007).
+
+Decisión: la creación de proyectos desde la UI es un acto de gobernanza
+que requiere confirmación explícita y asiento en bitácora, igual que el
+cambio de modo (ADR-002 §3.5).
+
+Reglas:
+- El campo `ref` debe ser único en el catálogo y sanitizado a mayúsculas
+  y caracteres alfanuméricos (regex `^[A-Z0-9]{1,16}$`).
+- El endpoint `POST /api/proyecto/crear` valida antes de escribir: si la
+  ref ya existe, rechaza con 409 Conflict; si es inválida, rechaza con
+  400 Bad Request.
+- La UI muestra confirmación antes de crear: "¿Crear proyecto #N con
+  ref REF? Esto queda registrado en la bitácora."
+- Después de crear, se registra en bitácora con los archivos afectados
+  (`data/proyectos.jsonl` y la nueva `data/proyectos/N-REF/BITACORA.jsonl`).
+
+Límites declarados:
+- La creación de proyectos no se delega a terceros no autenticados: la
+  UI opera en loopback o red local con decisión explícita del autor.
+- El slug de la carpeta (`N-REF`) se fija al crear y no cambia sin
+  asiento en bitácora (migración de carpeta = mudanza documentada).
+
+## Historial del addendum
+
+- v0.2, 2026-09-24: sección 3.6 (creación desde UI), originada en K-007.

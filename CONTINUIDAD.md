@@ -6,8 +6,8 @@
 **Última actualización:** 2026-09-23
 **Versión del proyecto:** 0.3.0 (Interfaz ADR-002 implementada)
 **Entorno de desarrollo:** Termux (Android) / Linux / macOS
-**Tests automatizados:** 55 (GitHub Actions CI)
-**Entradas en bitácora:** 27 (v1=9, v2=18; incluye el registro de este cierre)
+**Tests automatizados:** 60 (GitHub Actions CI)
+**Entradas en bitácora:** 28 (v1=9, v2=19; incluye el registro de este cierre)
 
 ---
 
@@ -120,6 +120,7 @@ Lo deshabilitado no se muestra (ni gris ni tachado). El selector de modo siempre
 ✅ Incidentes 001, 002 y UI-001 documentados con fix, tests y lecciones.
 ✅ Clave pública Ed25519 anclada en el repo (K-005): verificación completa por terceros y en CI.
 ✅ Multi-proyecto: catálogo y carpetas por proyecto, selector en UI (K-001), bitácoras y auditorías aisladas.
+✅ Creación de proyectos desde la UI (K-007): endpoint con validación de ref única y asiento en bitácora.
 
 ### Lo que STTM NO es / deudas declaradas
 ❌ **No es un HSM:** no protege contra root con control del disco.

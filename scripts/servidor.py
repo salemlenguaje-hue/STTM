@@ -181,6 +181,9 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
                 return self.send_json({"error": f"proyecto {n} no existe"}, 404)
             return self.send_json({"proyecto": elegido, "activos": activos})
 
+        if parsed.path == "/api/proyecto/crear":
+            return self.send_json({"error": "solo POST"}, 405)
+
         if parsed.path == "/api/documentos":
             docs = [str(p.relative_to(RAIZ)) for p in DOCS.rglob("*.md")]
             if (RAIZ / "CONTINUIDAD.md").exists():
@@ -285,6 +288,39 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
         datos = self.leer_json()
         if datos is None:
             return self.send_json({"error": "JSON inválido"}, 400)
+
+        if parsed.path == "/api/proyecto/crear":
+            titulo = (datos.get("titulo") or "").strip()
+            ref = (datos.get("ref") or "").strip().upper()
+            nivel = datos.get("nivel", "simple")
+            descripcion = (datos.get("descripcion") or "").strip()
+            if not titulo:
+                return self.send_json({"error": "titulo obligatorio"}, 400)
+            if not ref:
+                return self.send_json({"error": "ref obligatoria"}, 400)
+            if not re.match(r"^[A-Z0-9]{1,16}$", ref):
+                return self.send_json({"error": "ref invalida: solo A-Z 0-9, max 16"}, 400)
+            if nivel not in MODOS:
+                return self.send_json({"error": f"nivel invalido: {nivel}"}, 400)
+            r_list = correr_script("proyectos.py", "listar", "--json")
+            if r_list.returncode == 0:
+                lista = json.loads(r_list.stdout)
+                if any(p.get("ref_interna") == ref for p in lista):
+                    return self.send_json({"error": f"ref {ref} ya existe"}, 409)
+            r = correr_script("proyectos.py", "crear",
+                              "--titulo", titulo,
+                              "--descripcion", descripcion,
+                              "--ref", ref,
+                              "--nivel", nivel)
+            if r.returncode != 0:
+                return self.send_json({"error": r.stderr.strip()}, 500)
+            r2 = correr_script("registrar.py",
+                               f"Proyecto creado: {titulo}",
+                               f"Ref: {ref}, nivel: {nivel}. {descripcion}",
+                               "--archivos", "data/proyectos.jsonl",
+                               "--modo-firma", "hash")
+            return self.send_json({"ok": True, "stdout": r.stdout.strip(),
+                                   "registro": r2.stdout.strip()})
 
         if parsed.path == "/api/registrar":
             titulo = (datos.get("titulo") or "").strip()

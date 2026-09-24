@@ -151,3 +151,13 @@ móvil; la viewport de escritorio esconde desbordes.
 
 ## Historial actualizado
 - 2026-09-23: PC-011 documentado y resuelto. Cierre del ciclo K-001.
+
+## PC-012 — El selector de proyectos no ofrece creación y confunde
+**Estado:** Mitigado (botón explicativo); creación real pendiente (K-007).
+**Observación:** la UI muestra un selector de proyectos pero ninguna vía
+para crear uno; parece roto o incompleto.
+**Diagnóstico:** la creación de proyectos es un acto de gobernanza que hoy
+vive solo en la terminal (proyectos.py crear); la UI no lo comunicaba.
+**Mitigación:** botón "+ Proyecto" que explica el comando de terminal y
+referencia K-007. La creación real desde la UI queda como tarjeta K-007
+con validación de ref única y tests de endpoint.

@@ -471,6 +471,68 @@ $('#modo-select').addEventListener('change', async (e) => {
   }
 });
 
+// ---------- crear proyecto (K-007) ----------
+$('#btn-nuevo-proyecto').addEventListener('click', () => {
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay-copia';
+  const caja = document.createElement('div');
+  caja.className = 'overlay-caja';
+  const titulo = document.createElement('h3');
+  titulo.className = 'overlay-titulo';
+  titulo.textContent = 'Crear proyecto nuevo';
+  const form = document.createElement('form');
+  form.innerHTML = `
+    <label>Título: <input type="text" name="titulo" required></label><br>
+    <label>Ref (A-Z 0-9, max 16): <input type="text" name="ref" required pattern="[A-Za-z0-9]{1,16}"></label><br>
+    <label>Nivel:
+      <select name="nivel">
+        <option value="simple">Simple</option>
+        <option value="continuidad">Continuidad</option>
+        <option value="salem">Salem</option>
+      </select>
+    </label><br>
+    <label>Descripción (opcional): <textarea name="descripcion" rows="3"></textarea></label>
+  `;
+  const botones = document.createElement('div');
+  botones.className = 'acciones';
+  const btnCrear = document.createElement('button');
+  btnCrear.type = 'submit';
+  btnCrear.className = 'btn-accion';
+  btnCrear.textContent = 'Crear';
+  const btnCancelar = document.createElement('button');
+  btnCancelar.type = 'button';
+  btnCancelar.className = 'btn-accion btn-secundario';
+  btnCancelar.textContent = 'Cancelar';
+  btnCancelar.onclick = () => overlay.remove();
+  botones.append(btnCrear, btnCancelar);
+  form.appendChild(botones);
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const datos = Object.fromEntries(new FormData(form));
+    if (!confirm('¿Crear proyecto con ref ' + datos.ref.toUpperCase() + '? Esto queda registrado en la bitácora.')) return;
+    try {
+      const res = await fetchJSON('/api/proyecto/crear', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(datos)
+      });
+      if (res.ok) {
+        mostrarMensaje('Proyecto creado y registrado en bitácora.', 'ok');
+        overlay.remove();
+        await cargarProyectos();
+        await cargarProyecto();
+      } else {
+        mostrarMensaje('Error: ' + res.error, 'error');
+      }
+    } catch (err) {
+      mostrarMensaje('Error: ' + err.message, 'error');
+    }
+  });
+  caja.append(titulo, form);
+  overlay.appendChild(caja);
+  document.body.appendChild(overlay);
+});
+
 // ---------- inicio ----------
 async function inicio() {
   await cargarProyectos();

@@ -40,6 +40,9 @@ de bitácora que deje constancia de la nueva versión.
 
 ---
 
+
+---
+
 ## Backlog (ideas sin compromiso)
 
 ### K-101 — Paper público del método
@@ -93,3 +96,11 @@ que se anotará como fila de historial cuando confirme.
 
 ---
 *Tablero vivo. Se actualiza en el mismo commit que el trabajo que mueve tarjetas.*
+
+### K-007 — Crear proyecto desde la UI
+**Evidencia:** entrada #28 de bitácora y commit STTM-0.23. Endpoint POST
+/api/proyecto/crear con validación de ref única (409 si duplicada, 400 si
+inválida o título vacío); UI con botón '+ Proyecto', formulario modal y
+confirmación explícita; asiento en bitácora tras creación. Addendum 3.6 al
+ADR-003. Tests: test_k007_crear.py (5). Suite completa 60 tests verdes.
+PC-012 mitigado: el selector ofrece creación real.
