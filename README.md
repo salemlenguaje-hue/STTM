@@ -76,9 +76,29 @@ Transparency is a core safety feature. STTM:
 - ❌ Does **not** execute or evaluate AI models; it only tracks the *evidence* of the evaluation process.
 
 ## 5. Current State & Roadmap
-- **v0.1.0 (Current):** Core methodology, JSONL ledger, hash-chaining, and basic audit scripts.
-- **v0.2.0 (Next):** HTML local viewer for the ledger, automated privacy sanitization reports, and Ed25519 integration.
-- **v0.3.0 (Future):** Exportable audit packages formatted specifically for AI Safety grant applications.
+
+### What works today (v0.3.0)
+- **Core ledger:** Append-only JSONL with SHA-256 hash chaining and schema versioning (v1 legacy, v2 current).
+- **Cryptographic integrity:** Ed25519 signing with public key anchored in Bitcoin via OpenTimestamps (testigo #2 confirmed).
+- **Three governance modes:** Simple, Continuity, and Salem modes with explicit transitions documented in `docs/01-metodo/MODOS-DE-GOBERNANZA.md`.
+- **Local web UI:** Three-level interface (ledger, documents, audits) with project selector, mode switcher, and manual validation checklist.
+- **Multi-project support:** Catalog with append-only project creation, isolated ledgers per project, and UI-based project management.
+- **Privacy audits:** Built-in `auditar.py` script that classifies files by `.gitignore` rules and generates sanitized manifests.
+- **External witnesses:** Gmail email timestamp (testigo #1) and OpenTimestamps Bitcoin anchor (testigo #2, confirmed).
+- **70 automated tests** covering endpoints, cryptographic integrity, input validation, and governance transitions.
+- **34 signed ledger entries** documenting the project's own development with full incident history.
+
+### Known limitations (declared honestly)
+- **No automated UI rendering tests:** Validated manually on real devices (see `docs/05-ui/VALIDACION-MANUAL-UI.md`).
+- **Append is O(n) per entry:** Acceptable at current scale; declared as technical debt.
+- **JSON canonicalization is Python-specific:** External verifiers must replicate exact separators or wait for schema v3.
+- **Document registration (GOB-005 style):** Pending implementation.
+
+### Roadmap (no promises, only intentions)
+- **K-004:** Document registration workflow with version tracking.
+- **K-101:** Public paper on the method with verifiable evidence.
+- **K-105:** Exportable audit packages (.zip) for grant applications.
+- **Second adopter validation:** Seeking N=2 methodological validation (current: N=1 with Sofía Salem).
 
 ## 6. Quick Start
 ```bash
