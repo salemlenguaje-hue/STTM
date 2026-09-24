@@ -95,10 +95,11 @@ criterios de revisión declarados.
 **Evidencia:** entrada #21 de bitácora, commit STTM-0.16 y
 docs/06-seguridad/ANCLAJE-CLAVE-ED25519.md con fingerprint SHA-256.
 CI verifica ed25519 completo desde ese commit.
-**Pendiente derivado:** cerrado — testigo #1 (email Gmail, 2026-09-23 18:10)
-asentado en la entrada #23, y testigo #2 (sello OpenTimestamps, 18:43)
-en la entrada #22 y en el repo. Resta solo el upgrade de Bitcoin,
-que se anotará como fila de historial cuando confirme.
+**Pendiente derivado cerrado:** testigo #1 (email Gmail, 2026-09-23
+18:10) asentado en entrada #23; testigo #2 (sello OpenTimestamps, 18:43)
+en entrada #22 y en el repo; upgrade de Bitcoin completado el 2026-09-24
+(ots upgrade con atestaciones de bob, alice y finney), archivo .ots
+completo y verificable.
 
 ---
 *Tablero vivo. Se actualiza en el mismo commit que el trabajo que mueve tarjetas.*
