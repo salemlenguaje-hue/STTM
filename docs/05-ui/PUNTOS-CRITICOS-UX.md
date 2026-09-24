@@ -1,8 +1,11 @@
 # PUNTOS CRÍTICOS DE UX — Visor STTM
 
 **Propósito:** Registro vivo de fricciones, confusiones y riesgos de usabilidad
-detectados durante la implementación de ADR-002. Este documento es la fuente
-de contenido del panel de Ayuda que se integrará antes de finalizar el proyecto.
+detectados durante la implementación de ADR-002. Este documento es técnico y orientado a desarrolladores.
+
+**Para usuarios finales:** ver `docs/05-ui/AYUDA.md`, que es la versión
+adaptada con lenguaje de usuario y estructura de ayuda. El panel de
+Ayuda de la UI carga ese documento.
 
 **Regla:** cada punto crítico observado se anota acá en el momento, con su
 estado (abierto / mitigado / resuelto) y su mitigación si la tiene.

@@ -320,7 +320,7 @@ function markdownBasico(md) {
 
 async function cargarAyuda() {
   try {
-    const res = await fetch('/api/documento?ruta=' + encodeURIComponent('docs/05-ui/PUNTOS-CRITICOS-UX.md'));
+    const res = await fetch('/api/documento?ruta=' + encodeURIComponent('docs/05-ui/AYUDA.md'));
     const texto = await res.text();
     $('#contenido-ayuda').innerHTML = markdownBasico(texto);
   } catch (err) {

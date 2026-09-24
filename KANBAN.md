@@ -37,6 +37,14 @@ de bitácora que deje constancia de la nueva versión.
 
 ---
 
+### Panel de Ayuda implementado (2026-09-25)
+**Evidencia:** entrada #38 de bitácora y commit STTM-0.33. Documento
+`docs/05-ui/AYUDA.md` orientado a usuarios finales con explicación de
+modos, instrucciones paso a paso, problemas comunes (PC-001, PC-002,
+PC-009, PC-010, PC-011, PC-013) en lenguaje de usuario, exportar/compartir
+y preguntas frecuentes. Reemplaza el uso de `PUNTOS-CRITICOS-UX.md`
+(técnico) en el panel de ayuda de la UI.
+
 ## Backlog (ideas sin compromiso)
 
 ### K-101 — Paper público del método
