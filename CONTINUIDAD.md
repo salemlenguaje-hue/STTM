@@ -7,7 +7,7 @@
 **Versión del proyecto:** 0.3.0 (Interfaz ADR-002 implementada)
 **Entorno de desarrollo:** Termux (Android) / Linux / macOS
 **Tests automatizados:** 70 (GitHub Actions CI)
-**Entradas en bitácora:** 30 (v1=9, v2=21; incluye el registro de este cierre)
+**Entradas en bitácora:** 31 (v1=9, v2=22; incluye el registro de este cierre)
 
 ---
 
@@ -124,7 +124,7 @@ Lo deshabilitado no se muestra (ni gris ni tachado). El selector de modo siempre
 
 ### Lo que STTM NO es / deudas declaradas
 ❌ **No es un HSM:** no protege contra root con control del disco.
-❌ **Render de la UI sin tests automatizados:** validada a mano en dispositivo; los endpoints sí tienen tests (`tests/test_servidor.py`, 9 tests).
+✅ **Validación manual de UI declarada (K-003):** checklist de 8 puntos en docs/05-ui/VALIDACION-MANUAL-UI.md.
 ❌ **Selector de proyecto en UI:** pendiente (hoy opera el proyecto #1; el catálogo ya soporta N).
 ❌ **Migración de `BITACORA.jsonl` a `data/proyectos/1-STTM/`:** pendiente (ADR-003 §3.5).
 ❌ **Timestamping externo con testigos:** no implementado (capa siguiente al anclaje de clave).

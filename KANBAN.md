@@ -22,11 +22,6 @@ cada tarjeta es un compromiso verificable, no un post-it.
 
 ## Pendientes (próximos pasos comprometidos)
 
-### K-003 — Tests de render de UI o declaración formal de validación manual
-**Prioridad:** baja.
-**Aceptación:** tests/test_ui_render.py verde en CI, o entrada de bitácora
-que declare la validación manual como decisión aceptada, con motivo y
-frecuencia de revisión.
 
 ### K-004 — Registro de documentos estilo GOB-005
 **Prioridad:** baja.
@@ -94,6 +89,14 @@ tocar el archivo de test. Backup pre-migración con SHA-256 en data/backups/.
 scripts/rutas.py como fuente única de verdad; 3 scripts y 4 tests parcheados;
 git mv preservó el historial. 43 tests verdes; verificación íntegra desde la
 ruta nueva.
+
+### K-003 — Tests de render de UI o declaración formal de validación manual
+**Evidencia:** entrada #31 de bitácora y commit STTM-0.26. Declaración formal
+en docs/05-ui/VALIDACION-MANUAL-UI.md: la UI se valida manualmente en
+dispositivo real (no tests automatizados de render). Motivo: headless
+browser rompería el principio de stdlib únicamente y agregaría complejidad
+sin valor proporcional. Checklist de 8 puntos, frecuencia por commit,
+criterios de revisión declarados.
 
 ### K-005 — Anclaje público de la clave Ed25519
 **Evidencia:** entrada #21 de bitácora, commit STTM-0.16 y
