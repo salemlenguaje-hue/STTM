@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Creado por Martín José Dalberto, Argentina, 2026.
+# SPDX-License-Identifier: MIT
 """
 firma.py — Adaptador de firma para STTM (schema v2).
 

@@ -1,3 +1,5 @@
+# Creado por Martín José Dalberto, Argentina, 2026.
+# SPDX-License-Identifier: MIT
 """
 tests/test_k007_crear.py — Creación de proyectos desde API (K-007).
 

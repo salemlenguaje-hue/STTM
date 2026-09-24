@@ -1,3 +1,5 @@
+# Creado por Martín José Dalberto, Argentina, 2026.
+# SPDX-License-Identifier: MIT
 """
 tests/test_k001_selector.py — Criterio de aceptación de K-001.
 

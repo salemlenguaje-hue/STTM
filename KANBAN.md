@@ -43,6 +43,16 @@ de bitácora que deje constancia de la nueva versión.
 
 ---
 
+### K-009 — Pase de documentación: motivos de la revisión de código y de las cabeceras
+**Prioridad:** media.
+**Aceptación:** documento o entradas de bitácora que expliquen los motivos de
+los hallazgos H1–H7 de la revisión del corazón criptográfico y de la
+convención de cabeceras de autoría; cada hallazgo aprobado queda con su
+fix, su test y su motivo asentado.
+**Nota:** diferido a pedido del autor para no frenar el avance.
+
+---
+
 ## Backlog (ideas sin compromiso)
 
 ### K-101 — Paper público del método

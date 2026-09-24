@@ -161,3 +161,26 @@ vive solo en la terminal (proyectos.py crear); la UI no lo comunicaba.
 **Mitigación:** botón "+ Proyecto" que explica el comando de terminal y
 referencia K-007. La creación real desde la UI queda como tarjeta K-007
 con validación de ref única y tests de endpoint.
+
+## PC-013 — El navegador del celular sirve JavaScript viejo y la UI "no anda" sin errores
+**Estado:** Mitigado (Cache-Control: no-store para html/js/css desde el servidor).
+**Observación:** tras un deploy de UI nueva, el botón "+ Proyecto" parecía
+roto en el celular: el HTML llegaba nuevo (botón visible) pero el click no
+hacía nada. Sin errores en pantalla y sin errores en el servidor.
+**Diagnóstico:** el navegador móvil servía app.js desde caché. El código
+viejo no conoce los handlers nuevos, así que la funcionalidad nueva
+simplemente no existe para él. El síntoma exacto es ese: funcionalidad
+ausente sin ningún error.
+**Mitigación:** el servidor envía Cache-Control: no-store para text/html,
+text/css y javascript (decisión declarada: STTM es herramienta local de un
+solo usuario; la caché no aporta nada y cuesta confusiones). Verificado con
+tests de endpoint sobre los tres tipos.
+**Lección doble:** (1) Ante un "no anda" en navegador sin errores, lo
+primero es descartar caché con una pestaña incógnito; recién después se
+toca código. (2) El combo "HTML nuevo + JS viejo" se confunde con un bug
+de código; registrar esta fricción ahorra horas de parches innecesarios.
+
+---
+
+## Historial actualizado
+- 2026-09-24: PC-013 documentado y mitigado. K-007 validado en dispositivo.

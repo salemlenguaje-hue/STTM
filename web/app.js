@@ -1,3 +1,4 @@
+/* Creado por Martín José Dalberto, Argentina, 2026. SPDX-License-Identifier: MIT */
 /**
  * app.js v4 — Visor STTM (ADR-002, K-001 multi-proyecto).
  * 

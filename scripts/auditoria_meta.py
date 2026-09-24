@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Creado por Martín José Dalberto, Argentina, 2026.
+# SPDX-License-Identifier: MIT
 """
 auditoria_meta.py — Metadatos de auditoría STTM (ADR-003 §3.3).
 

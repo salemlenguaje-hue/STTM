@@ -1,3 +1,5 @@
+# Creado por Martín José Dalberto, Argentina, 2026.
+# SPDX-License-Identifier: MIT
 """
 tests/test_integracion_firma.py — Circuito completo registrar -> verificar.
 Nació del incidente 001: los tests unitarios no detectaban bugs de

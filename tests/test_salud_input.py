@@ -1,3 +1,5 @@
+# Creado por Martín José Dalberto, Argentina, 2026.
+# SPDX-License-Identifier: MIT
 """
 tests/test_salud_input.py — Salud de input del endpoint de registro.
 

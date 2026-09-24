@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Creado por Martín José Dalberto, Argentina, 2026.
+# SPDX-License-Identifier: MIT
 """
 proyectos.py — Gestor del catálogo de proyectos STTM (ADR-003).
 

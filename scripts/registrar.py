@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Creado por Martín José Dalberto, Argentina, 2026.
+# SPDX-License-Identifier: MIT
 """registrar.py — Registro STTM con firma canónica (schema v2)."""
 import argparse
 import json

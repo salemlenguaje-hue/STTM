@@ -1,3 +1,5 @@
+# Creado por Martín José Dalberto, Argentina, 2026.
+# SPDX-License-Identifier: MIT
 """
 tests/test_sttm.py — Suite de tests black-box para STTM.
 Aislamiento de entornos temporales para no contaminar la bitácora real.

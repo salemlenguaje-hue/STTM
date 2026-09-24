@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Creado por Martín José Dalberto, Argentina, 2026.
+# SPDX-License-Identifier: MIT
 """
 rutas.py — Fuente única de verdad de rutas STTM (K-002, v2 para K-001).
 

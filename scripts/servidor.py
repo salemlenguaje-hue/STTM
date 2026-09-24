@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Creado por Martín José Dalberto, Argentina, 2026.
+# SPDX-License-Identifier: MIT
 """
 servidor.py — API local + estáticos del visor STTM (ADR-002, v3 multi-proyecto K-001).
 
@@ -122,6 +124,16 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
 
     def log_message(self, fmt, *a):
         pass
+
+    def send_header(self, keyword, value):
+        # PC-013: el navegador móvil servía JS viejo tras un deploy y la
+        # UI nueva parecía rota sin errores. STTM es herramienta local:
+        # los estáticos se sirven sin caché, siempre frescos.
+        super().send_header(keyword, value)
+        tipo = value.split(";")[0].strip() if keyword == "Content-type" else ""
+        if tipo in ("text/html", "text/css",
+                    "application/javascript", "text/javascript"):
+            super().send_header("Cache-Control", "no-store")
 
     def send_json(self, obj, code=200):
         body = json.dumps(obj, ensure_ascii=False).encode("utf-8")
