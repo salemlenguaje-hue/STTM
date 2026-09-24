@@ -63,10 +63,24 @@ def correr_script(nombre, *args, proyecto=None):
     env["STTM_ROOT"] = str(RAIZ)
     if proyecto is not None:
         env["STTM_PROYECTO"] = str(proyecto)
-    return subprocess.run(
-        [sys.executable, str(SCRIPTS / nombre), *args],
-        capture_output=True, text=True, env=env,
-    )
+    # H5: timeout para que un script colgado no congele el hilo del servidor.
+    # Configurable vía STTM_SCRIPT_TIMEOUT (default 30s) para permitir
+    # valores cortos en los tests.
+    timeout = int(os.environ.get("STTM_SCRIPT_TIMEOUT", "30"))
+    try:
+        r = subprocess.run(
+            [sys.executable, str(SCRIPTS / nombre), *args],
+            capture_output=True, text=True, env=env, timeout=timeout,
+        )
+        # H4: sanitizar stderr para no filtrar paths absolutos al cliente.
+        r.stderr = sanitizar(r.stderr)
+        return r
+    except subprocess.TimeoutExpired:
+        # Un script que excede el timeout se reporta como fallo, sin
+        # colgar el servidor ni propagar la excepción a los endpoints.
+        return subprocess.CompletedProcess(
+            args=[nombre], returncode=-1, stdout="",
+            stderr=f"timeout: el script {nombre} excedió {timeout} segundos")
 
 
 def sha256_archivo(ruta):
@@ -118,6 +132,24 @@ def proyecto_de_query(q, clave="proyecto"):
         return None
 
 
+# H4: regex para detectar paths absolutos Unix de 2+ componentes.
+# Ej: /data/data/com.termux/... → "...". No matchea "/a" solo (muy corto).
+RE_PATH_ABSOLUTO = re.compile(r'(?:/[a-zA-Z0-9_.\-]+){2,}')
+
+
+def sanitizar(texto):
+    """H4: evitar filtrar paths absolutos del sistema en respuestas al cliente.
+
+    Reemplaza paths absolutos por '...' y trunca a 500 caracteres para
+    evitar respuestas gigantes. No afecta el contenido útil del mensaje.
+    """
+    texto = RE_PATH_ABSOLUTO.sub("...", texto)
+    MAX = 500
+    if len(texto) > MAX:
+        texto = texto[:MAX] + "..."
+    return texto
+
+
 class STTMHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(WEB), **kwargs)
@@ -153,6 +185,10 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
 
     def leer_json(self):
         largo = int(self.headers.get("Content-Length", 0))
+        LIMITE_JSON = 10 * 1024 * 1024  # 10 MB
+        if largo > LIMITE_JSON:
+            self.send_json({"error": f"JSON demasiado grande (máximo {LIMITE_JSON} bytes)"}, 413)
+            return None
         crudo = self.rfile.read(largo) if largo else b"{}"
         try:
             return json.loads(crudo.decode("utf-8"))
@@ -381,6 +417,10 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
 
         if parsed.path == "/api/documento":
             cuerpo = datos.get("cuerpo") or ""
+            LIMITE_DOC = 5 * 1024 * 1024  # 5 MB
+            if len(cuerpo.encode("utf-8")) > LIMITE_DOC:
+                return self.send_json(
+                    {"error": f"Documento demasiado grande (máximo {LIMITE_DOC} bytes)"}, 413)
             ruta_rel = (datos.get("ruta") or "").strip()
             if ruta_rel:
                 ruta = ruta_documento_valida(ruta_rel)

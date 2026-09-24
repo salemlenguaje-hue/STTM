@@ -45,6 +45,13 @@ PC-009, PC-010, PC-011, PC-013) en lenguaje de usuario, exportar/compartir
 y preguntas frecuentes. Reemplaza el uso de `PUNTOS-CRITICOS-UX.md`
 (técnico) en el panel de ayuda de la UI.
 
+### Revisión del servidor (Capa 2) cerrada (2026-09-25)
+**Evidencia:** entrada #39 de bitácora y commit STTM-0.34. Cuatro fixes
+de robustez aplicados: H2 (límite JSON 10MB), H3 (límite documento 5MB),
+H4 (sanitizar stderr), H5 (timeout subprocess 30s). Suite completa: 74
+tests verdes. H1 (CORS/CSRF en --movil) declarado como deuda documentada
+(usuario confirmó loopback puro, riesgo teórico).
+
 ## Backlog (ideas sin compromiso)
 
 ### K-101 — Paper público del método
