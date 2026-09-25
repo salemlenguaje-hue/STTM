@@ -64,6 +64,11 @@ aplicados: P3 (validación ref CLI), P4 (unicidad ref CLI), P1 (catálogo
 tolerante a corrupción), P2 (fsync en agregar). Suite completa: 89 tests
 verdes. P5-P7 declarados como deuda documentada.
 
+### Documento DGE (descripción del ecosistema) creado (2026-09-25)
+**Evidencia:** entrada #42 de bitácora y commit STTM-0.37. Documento
+SEA-SALEM-DGE-0.1-2026-R1 describe las tres líneas de Salem y su estado
+actual. Base para presentaciones y documentos específicos.
+
 ## Backlog (ideas sin compromiso)
 
 ### K-101 — Paper público del método
