@@ -69,6 +69,12 @@ verdes. P5-P7 declarados como deuda documentada.
 SEA-SALEM-DGE-0.1-2026-R1 describe las tres líneas de Salem y su estado
 actual. Base para presentaciones y documentos específicos.
 
+### Documento DST (descripción del sistema STTM) creado (2026-09-25)
+**Evidencia:** entrada #43 de bitácora y commit STTM-0.38. Documento
+SEA-SALEM-DST-0.1-2026-R1 describe STTM: arquitectura, estado actual,
+hoja de ruta por nivel y criterios de valor como activo. Complementa al
+DGE y sirve como base para presentaciones técnicas y valuación contable.
+
 ## Backlog (ideas sin compromiso)
 
 ### K-101 — Paper público del método
