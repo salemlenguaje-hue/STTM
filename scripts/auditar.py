@@ -28,6 +28,7 @@ from pathlib import Path
 import verificar as mod_verificar
 import auditoria_meta
 import proyectos
+import rutas  # A1: resolución explícita de la bitácora por proyecto
 
 RAIZ = Path(os.environ.get("STTM_ROOT", Path(__file__).resolve().parent.parent))
 AUDITORIAS = RAIZ / "auditorias"
@@ -86,19 +87,43 @@ def patrones_gitignore():
 
 
 def cubierto_por_gitignore(ruta_rel, pats):
-    """Devuelve el patrón que cubre al archivo, o None."""
+    """Devuelve el patrón que cubre al archivo, o None.
+
+    A2: maneja negación (!) y wildcard de múltiples niveles (**).
+    Los patrones se procesan en orden; los últimos tienen prioridad.
+    Un patrón con ! des-excluye (devuelve None si es el último que matchea).
+    """
     nombre = ruta_rel.name
     rel = ruta_rel.as_posix()
+    resultado = None  # None = no cubierto, "patron" = cubierto por ese patrón
+    
     for p in pats:
         clean = p.rstrip("/")
-        if clean.startswith("/"):
-            base = clean.lstrip("/")
+        es_negacion = clean.startswith("!")
+        if es_negacion:
+            clean = clean[1:]  # quitar el !
+        
+        # Convertir ** a wildcard de fnmatch (cualquier cosa incluyendo /)
+        # fnmatch no soporta ** nativamente, así que lo reemplazamos por *
+        # y matcheamos contra el path completo.
+        clean_fnmatch = clean.replace("**", "*")
+        
+        matcheado = False
+        if clean_fnmatch.startswith("/"):
+            base = clean_fnmatch.lstrip("/")
             if fnmatch(rel, base) or fnmatch(rel, base + "/*"):
-                return p
+                matcheado = True
         else:
-            if fnmatch(nombre, clean) or fnmatch(rel, clean) or fnmatch(rel, "*/" + clean):
-                return p
-    return None
+            if (fnmatch(nombre, clean_fnmatch) or 
+                fnmatch(rel, clean_fnmatch) or 
+                fnmatch(rel, "*/" + clean_fnmatch)):
+                matcheado = True
+        
+        if matcheado:
+            # El último patrón que matchea decide el resultado.
+            resultado = None if es_negacion else p
+    
+    return resultado
 
 
 def escanear_privacidad():
@@ -155,15 +180,20 @@ def escanear_privacidad():
     return rojos, amarillos
 
 
-def escribir_manifiesto(carpeta):
-    """Hashes de los artefactos de la carpeta (excepto el manifiesto mismo)."""
+def escribir_manifiesto(carpeta, ruta_bitacora):
+    """Hashes de los artefactos de la carpeta (excepto el manifiesto mismo).
+
+    A1: la bitácora se recibe explícitamente para que el manifiesto
+    refleje el proyecto que realmente se audita, no el que resolvía la
+    constante importada al arrancar (según STTM_PROYECTO del entorno).
+    """
     archivos = sorted(p for p in carpeta.iterdir()
                       if p.is_file() and p.name != "manifiesto.json")
     man = {
         "generado_utc": ahora_utc(),
         "archivos": {p.name: sha256_archivo(p) for p in archivos},
-        "bitacora_sha256": sha256_archivo(mod_verificar.BITACORA)
-                           if mod_verificar.BITACORA.exists() else None,
+        "bitacora_sha256": sha256_archivo(ruta_bitacora)
+                           if ruta_bitacora.exists() else None,
     }
     ruta = carpeta / "manifiesto.json"
     ruta.write_text(json.dumps(man, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -225,10 +255,19 @@ def main():
     parser.add_argument("--tipo", choices=("rapida", "estandar", "profunda"), default="rapida")
     args = parser.parse_args()
 
+    # A1: resolver la bitácora del proyecto solicitado explícitamente,
+    # no depender de la constante importada (que refleja STTM_PROYECTO
+    # del entorno al importar, no el --proyecto de la CLI).
+    try:
+        ruta_bitacora = rutas.bitacora_de(args.proyecto)
+    except RuntimeError as e:
+        print(f"❌ {e}")
+        return 1
+
     print("🚀 Iniciando Auditoría STTM...")
     print("-" * 30)
 
-    res = mod_verificar.verificar()
+    res = mod_verificar.verificar(ruta=ruta_bitacora)
     if not res["existe"]:
         print(f"❌ No encuentro la bitácora: {res['ruta']}")
         return 1
@@ -269,7 +308,7 @@ def main():
     generar_reporte(carpeta, res, rojos_priv, amarillos_priv, rojos, amarillos, estado)
     print(f"📄 Reporte guardado en: {carpeta.relative_to(RAIZ)}/reporte.md")
 
-    ruta_man = escribir_manifiesto(carpeta)
+    ruta_man = escribir_manifiesto(carpeta, ruta_bitacora)
     print(f"🧾 Manifiesto escrito en: {ruta_man.relative_to(RAIZ)}")
 
     meta = {

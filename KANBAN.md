@@ -52,6 +52,12 @@ H4 (sanitizar stderr), H5 (timeout subprocess 30s). Suite completa: 74
 tests verdes. H1 (CORS/CSRF en --movil) declarado como deuda documentada
 (usuario confirmó loopback puro, riesgo teórico).
 
+### Revisión de auditar.py (Capa 3) cerrada (2026-09-25)
+**Evidencia:** entrada #40 de bitácora y commit STTM-0.35. Dos fixes
+aplicados: A1 (bitácora explícita en main), A2 (gitignore con negación
+y **). Suite completa: 76 tests verdes. A3-A5 declarados como deuda
+documentada.
+
 ## Backlog (ideas sin compromiso)
 
 ### K-101 — Paper público del método
