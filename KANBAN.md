@@ -58,6 +58,12 @@ aplicados: A1 (bitácora explícita en main), A2 (gitignore con negación
 y **). Suite completa: 76 tests verdes. A3-A5 declarados como deuda
 documentada.
 
+### Revisión de proyectos.py (Capa 4) cerrada (2026-09-25)
+**Evidencia:** entrada #41 de bitácora y commit STTM-0.36. Cuatro fixes
+aplicados: P3 (validación ref CLI), P4 (unicidad ref CLI), P1 (catálogo
+tolerante a corrupción), P2 (fsync en agregar). Suite completa: 89 tests
+verdes. P5-P7 declarados como deuda documentada.
+
 ## Backlog (ideas sin compromiso)
 
 ### K-101 — Paper público del método

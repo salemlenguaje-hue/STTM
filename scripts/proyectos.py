@@ -22,6 +22,8 @@ Uso:
 import argparse
 import json
 import os
+import re
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -43,10 +45,18 @@ def leer_lineas():
     if not CATALOGO.exists():
         return []
     lineas = []
-    for linea in CATALOGO.read_text(encoding="utf-8").splitlines():
+    for i, linea in enumerate(CATALOGO.read_text(encoding="utf-8").splitlines(), 1):
         linea = linea.strip()
-        if linea:
+        if not linea:
+            continue
+        try:
             lineas.append(json.loads(linea))
+        except json.JSONDecodeError as e:
+            # P1: una línea corrupta no debe romper todo el catálogo.
+            # Se saltea con aviso a stderr para que el usuario lo sepa.
+            print(f"⚠️ Línea {i} de {CATALOGO} corrupta (JSON inválido: {e}); se saltea.",
+                  file=sys.stderr)
+            continue
     return lineas
 
 
@@ -71,6 +81,9 @@ def agregar(entrada):
     CATALOGO.parent.mkdir(parents=True, exist_ok=True)
     with CATALOGO.open("a", encoding="utf-8") as f:
         f.write(json.dumps(entrada, ensure_ascii=False) + "\n")
+        # P2: forzar a disco antes de cerrar (durabilidad ante corte de energía).
+        f.flush()
+        os.fsync(f.fileno())
 
 
 def cmd_listar(args):
@@ -97,7 +110,22 @@ def cmd_crear(args):
     if args.nivel not in NIVELES:
         print(f"❌ Nivel inválido: {args.nivel}. Válidos: {', '.join(NIVELES)}")
         return 1
+    # P3: validar ref si está presente (consistente con servidor, ADR-003).
+    # Sin esto, una ref con "../" causaría path traversal al crear la carpeta.
+    if args.ref is not None:
+        ref = args.ref.strip().upper()
+        if not re.match(r"^[A-Z0-9]{1,16}$", ref):
+            print(f"❌ Ref inválida: '{args.ref}'. Solo A-Z 0-9, máximo 16 caracteres.")
+            return 1
+        args.ref = ref
     estado = cargar_estado()
+    # P4: verificar ref duplicada (consistente con servidor).
+    # Dos proyectos con la misma ref colisionarían en la misma carpeta de rutas.py.
+    if args.ref is not None:
+        for n_existente, p in estado.items():
+            if p.get("ref_interna") == args.ref:
+                print(f"❌ Ref '{args.ref}' ya existe en proyecto #{n_existente}.")
+                return 1
     n = proximo_n(estado)
     entrada = {
         "n": n,
