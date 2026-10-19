@@ -12,6 +12,27 @@
 </head>
 <body>
 
+  <!-- STTM v0.4: pantalla de login. El servidor ahora exige un token de
+       sesión válido para CUALQUIER endpoint /api/ (lectura o escritura).
+       Esta capa es intencionalmente simple: sin frameworks, un form y
+       fetch a /api/login. El token vive en sessionStorage (se borra al
+       cerrar la pestaña) — nunca en localStorage. -->
+  <div id="pantalla-login" class="pantalla-login">
+    <form id="form-login" class="caja-login">
+      <img src="salem-logo.png" alt="Isologo Salem" class="logo-login">
+      <h2>STTM — Iniciar sesión</h2>
+      <label for="login-usuario">Usuario</label>
+      <input id="login-usuario" name="usuario" type="text" autocomplete="username" required>
+      <label for="login-password">Contraseña</label>
+      <input id="login-password" name="password" type="password" autocomplete="current-password" required>
+      <button type="submit" class="btn-accion btn-primario">Ingresar</button>
+      <p id="login-error" class="login-error" hidden></p>
+      <p class="login-ayuda">¿No tenés usuario? Pedile a un admin que lo cree con
+        <code>python scripts/identidad.py crear &lt;usuario&gt; --rol lector</code>.</p>
+    </form>
+  </div>
+
+  <div id="app-contenido" hidden>
   <header class="cabecera">
     <div class="marca">
       <img src="salem-logo.png" alt="Isologo Salem" class="logo">
@@ -169,7 +190,10 @@ Contenido en Markdown..."></textarea>
   <footer class="pie">
     <span>STTM — Salem Traceability & Trust Method</span>
     <span>Martín José Dalberto · Argentina · 2026</span>
+    <span id="pie-usuario-actual" class="pie-usuario"></span>
+    <button id="btn-cerrar-sesion" class="btn-link" type="button">Cerrar sesión</button>
   </footer>
+  </div> <!-- /#app-contenido -->
 
   <script src="app.js"></script>
 </body>

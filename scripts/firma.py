@@ -124,15 +124,61 @@ def ed25519_verificar(entrada: dict, firma_hex: str, publica_pem: bytes) -> bool
 
 
 def ceremonia_claves():
-    """Genera y guarda el par de claves en data/claves/."""
+    """Genera y guarda el par de claves de PROYECTO en data/claves/.
+
+    Nota v0.4: para firmar entradas individuales, usá identidad.py, que
+    genera una clave Ed25519 POR USUARIO (no una compartida). Esta
+    ceremonia de proyecto queda para casos que necesiten una clave única
+    a nivel proyecto (ej. firmar el manifiesto de una auditoría completa),
+    no para atribuir autoría de entradas individuales.
+    """
     CLAVES_DIR.mkdir(parents=True, exist_ok=True)
     privada_pem, publica_pem = generar_claves_ed25519()
-    ruta_priv = CLAVES_DIR / "sofia_privada.pem"
+    ruta_priv = CLAVES_DIR / "proyecto_privada.pem"
     ruta_priv.write_bytes(privada_pem)
     os.chmod(ruta_priv, 0o600)
-    (CLAVES_DIR / "sofia_publica.pem").write_bytes(publica_pem)
-    print(f"✅ Clave privada en: {CLAVES_DIR / 'sofia_privada.pem'} (NUNCA subir al repo)")
-    print(f"✅ Clave pública en: {CLAVES_DIR / 'sofia_publica.pem'} (publicable)")
+    (CLAVES_DIR / "proyecto_publica.pem").write_bytes(publica_pem)
+    print(f"✅ Clave privada en: {ruta_priv} (NUNCA subir al repo)")
+    print(f"✅ Clave pública en: {CLAVES_DIR / 'proyecto_publica.pem'} (publicable)")
+
+
+# =========================================================================
+# Schema v3 (STTM v0.4): canonicalización JCS (RFC 8785) + atribución real.
+#
+# Diferencias respecto a v2:
+#   - Serialización: canon.canonicalizar_bytes (JCS/RFC 8785) en vez de
+#     json.dumps(sort_keys=True) — interoperable con cualquier lenguaje,
+#     no solo Python (deuda declarada H7 de la v0.3, ahora resuelta).
+#   - Nuevo campo obligatorio 'actor': el nombre de usuario STTM que
+#     generó la entrada. Entra al hash de contenido (si alguien cambia
+#     quién dice haber hecho algo, el hash cambia) y a lo firmado.
+#   - La firma SIEMPRE es Ed25519 con la clave PROPIA del actor
+#     (identidad.firmar_como), nunca HMAC de proyecto: HMAC comparte
+#     una única clave entre todos, lo que no permite atribución
+#     individual real y además es frágil si esa clave única se filtra
+#     o se olvida configurar (ver ADR-STTM-004).
+# =========================================================================
+import canon as _canon
+
+CAMPOS_BASE_V3 = CAMPOS_BASE + ("actor",)
+
+
+def base_v3(entrada: dict) -> dict:
+    return {c: entrada.get(c) for c in CAMPOS_BASE_V3}
+
+
+def hash_contenido_v3(entrada: dict) -> str:
+    return hashlib.sha256(_canon.canonicalizar_bytes(base_v3(entrada))).hexdigest()
+
+
+def entrada_firmable_v3(entrada: dict) -> dict:
+    d = base_v3(entrada)
+    d["hash"] = entrada.get("hash")
+    return d
+
+
+def texto_firmable_v3(entrada: dict) -> bytes:
+    return _canon.canonicalizar_bytes(entrada_firmable_v3(entrada))
 
 
 if __name__ == "__main__":

@@ -14,9 +14,52 @@ const $$ = (sel) => document.querySelectorAll(sel);
 let proyectoActual = null;
 let proyectoSeleccionado = null;
 
+// ---------- autenticación (STTM v0.4) ----------
+// El token vive en sessionStorage: sobrevive a un F5 pero se borra solo
+// al cerrar la pestaña/navegador. Nunca en localStorage (no queremos que
+// un token quede pegado indefinidamente en un dispositivo compartido,
+// como los del taller en la escuela).
+let authToken = sessionStorage.getItem('sttm_token');
+let authUsuario = sessionStorage.getItem('sttm_usuario');
+
+function headersAuth(extra = {}) {
+  const h = { ...extra };
+  if (authToken) h['Authorization'] = 'Bearer ' + authToken;
+  return h;
+}
+
+function mostrarApp() {
+  $('#pantalla-login').hidden = true;
+  $('#app-contenido').hidden = false;
+  if ($('#pie-usuario-actual')) {
+    $('#pie-usuario-actual').textContent = authUsuario ? ('· ' + authUsuario) : '';
+  }
+}
+
+function mostrarLogin(mensaje) {
+  authToken = null;
+  authUsuario = null;
+  sessionStorage.removeItem('sttm_token');
+  sessionStorage.removeItem('sttm_usuario');
+  $('#app-contenido').hidden = true;
+  $('#pantalla-login').hidden = false;
+  const err = $('#login-error');
+  if (mensaje) {
+    err.textContent = mensaje;
+    err.hidden = false;
+  } else {
+    err.hidden = true;
+  }
+}
+
 // ---------- utilidades ----------
 async function fetchJSON(url, options = {}) {
-  const res = await fetch(url, options);
+  const opciones = { ...options, headers: headersAuth(options.headers || {}) };
+  const res = await fetch(url, opciones);
+  if (res.status === 401) {
+    mostrarLogin('La sesión expiró. Iniciá sesión de nuevo.');
+    throw new Error('sesión expirada');
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     throw new Error(err.error || 'Error de red');
@@ -219,7 +262,9 @@ async function cargarDocumentos() {
 
 async function verDocumento(ruta) {
   try {
-    const res = await fetch('/api/documento?ruta=' + encodeURIComponent(ruta));
+    const res = await fetch('/api/documento?ruta=' + encodeURIComponent(ruta),
+                             { headers: headersAuth() });
+    if (res.status === 401) { mostrarLogin('La sesión expiró.'); return; }
     if (!res.ok) throw new Error('ruta no autorizada o inexistente');
     const texto = await res.text();
     $('#lista-documentos').classList.add('oculto');
@@ -320,7 +365,8 @@ function markdownBasico(md) {
 
 async function cargarAyuda() {
   try {
-    const res = await fetch('/api/documento?ruta=' + encodeURIComponent('docs/05-ui/AYUDA.md'));
+    const res = await fetch('/api/documento?ruta=' + encodeURIComponent('docs/05-ui/AYUDA.md'),
+                             { headers: headersAuth() });
     const texto = await res.text();
     $('#contenido-ayuda').innerHTML = markdownBasico(texto);
   } catch (err) {
@@ -534,9 +580,63 @@ $('#btn-nuevo-proyecto').addEventListener('click', () => {
   document.body.appendChild(overlay);
 });
 
+// ---------- login ----------
+$('#form-login').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const usuario = $('#login-usuario').value.trim();
+  const password = $('#login-password').value;
+  const boton = e.target.querySelector('button[type="submit"]');
+  boton.disabled = true;
+  try {
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario, password }),
+    });
+    const datos = await res.json();
+    if (!res.ok) {
+      $('#login-error').textContent = datos.error || 'Usuario o contraseña inválidos';
+      $('#login-error').hidden = false;
+      return;
+    }
+    authToken = datos.token;
+    authUsuario = datos.usuario;
+    sessionStorage.setItem('sttm_token', authToken);
+    sessionStorage.setItem('sttm_usuario', authUsuario);
+    mostrarApp();
+    await inicio();
+  } catch (err) {
+    $('#login-error').textContent = 'No se pudo conectar con el servidor.';
+    $('#login-error').hidden = false;
+  } finally {
+    boton.disabled = false;
+  }
+});
+
+$('#btn-cerrar-sesion').addEventListener('click', async () => {
+  try {
+    await fetch('/api/logout', {
+      method: 'POST',
+      headers: headersAuth({ 'Content-Type': 'application/json' }),
+    });
+  } catch (err) {
+    // Si el servidor no responde, igual limpiamos la sesión local.
+  }
+  mostrarLogin();
+});
+
 // ---------- inicio ----------
 async function inicio() {
   await cargarProyectos();
   await cargarProyecto();
 }
-inicio();
+
+// El arranque ahora depende de tener un token de sesión. Si ya había uno
+// guardado (F5 de la página), lo probamos; si el servidor lo rechaza,
+// fetchJSON llama a mostrarLogin() automáticamente (ver arriba).
+if (authToken) {
+  mostrarApp();
+  inicio();
+} else {
+  mostrarLogin();
+}

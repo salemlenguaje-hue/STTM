@@ -40,6 +40,7 @@ import socket
 import socketserver
 import subprocess
 import sys
+import time
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 
@@ -52,10 +53,41 @@ AUDITORIAS = RAIZ / "auditorias"
 sys.path.insert(0, str(SCRIPTS))
 import verificar as mod_verificar  # verificación estructurada
 import rutas                       # resolución de carpetas por proyecto
+import identidad                   # STTM v0.4: usuarios, roles, sesiones
+import indice                      # STTM v0.4: índice SQLite derivado
 
 RE_CARPETA = re.compile(r"^\d{4}-\d{2}-\d{2}_\d{6}$")
 MODOS = ("simple", "continuidad", "salem")
-MODOS_FIRMA = ("hash", "hmac", "ed25519")
+MODOS_FIRMA = ("hash", "hmac", "ed25519", "ed25519_actor")
+
+# --- Rate limiting simple de /api/login (en memoria, por proceso) ---
+# No pretende ser una defensa de nivel producción distribuida (eso
+# requeriría un store compartido tipo Redis si hay más de un proceso
+# servidor detrás de un balanceador). Para el caso de uso real de STTM
+# —un servidor único, self-hosted, por equipo u organización— esto ya
+# corta un ataque de fuerza bruta trivial. Declarado como suficiente
+# para v0.4, no como "protección enterprise contra DDoS de login".
+#
+# Clave = (ip, usuario), NO solo ip: en el taller de la escuela (CEP 40),
+# decenas de alumnos van a compartir la misma IP de red local. Si el
+# límite fuera por IP sola, un alumno que se equivoca de contraseña
+# varias veces bloquearía el login de toda el aula durante 15 minutos.
+# Por usuario, cada quien se bloquea solo a sí mismo.
+_INTENTOS_LOGIN = {}  # (ip, usuario) -> [timestamps de intentos fallidos]
+LIMITE_INTENTOS = 5
+VENTANA_BLOQUEO_SEGUNDOS = 15 * 60
+
+
+def _login_bloqueado(ip: str, usuario: str) -> bool:
+    clave = (ip, usuario)
+    ahora = time.time()
+    intentos = [t for t in _INTENTOS_LOGIN.get(clave, []) if ahora - t < VENTANA_BLOQUEO_SEGUNDOS]
+    _INTENTOS_LOGIN[clave] = intentos
+    return len(intentos) >= LIMITE_INTENTOS
+
+
+def _registrar_intento_fallido(ip: str, usuario: str):
+    _INTENTOS_LOGIN.setdefault((ip, usuario), []).append(time.time())
 
 
 def correr_script(nombre, *args, proyecto=None):
@@ -183,6 +215,28 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    # ---------------- STTM v0.4: autenticación y autorización ----------------
+    def _token_de_header(self):
+        auth = self.headers.get("Authorization", "")
+        if auth.startswith("Bearer "):
+            return auth[len("Bearer "):].strip()
+        return None
+
+    def _autorizar(self, rol_minimo="lector"):
+        """Exige un token de sesión válido con al menos `rol_minimo`.
+
+        Si falla, ya envió la respuesta HTTP (401/403) y devuelve None:
+        el llamador debe hacer `if not info: return`.
+        """
+        info = identidad.validar_token(self._token_de_header())
+        if not info:
+            self.send_json({"error": "no autenticado: token ausente o expirado"}, 401)
+            return None
+        if not identidad.rol_alcanza(info["rol"], rol_minimo):
+            self.send_json({"error": f"permisos insuficientes (requiere rol {rol_minimo})"}, 403)
+            return None
+        return info
+
     def leer_json(self):
         largo = int(self.headers.get("Content-Length", 0))
         LIMITE_JSON = 10 * 1024 * 1024  # 10 MB
@@ -201,6 +255,7 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
         q = parse_qs(parsed.query)
 
         if parsed.path == "/api/bitacora":
+            if not self._autorizar("lector"): return
             n = proyecto_de_query(q)
             if n is None:
                 return self.send_json({"error": "proyecto invalido"}, 400)
@@ -216,6 +271,7 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
             return self.send_json(entradas[::-1])
 
         if parsed.path == "/api/proyecto":
+            if not self._autorizar("lector"): return
             r = correr_script("proyectos.py", "listar", "--json")
             if r.returncode != 0:
                 return self.send_json({"error": r.stderr.strip()}, 500)
@@ -233,18 +289,21 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
             return self.send_json({"error": "solo POST"}, 405)
 
         if parsed.path == "/api/documentos":
+            if not self._autorizar("lector"): return
             docs = [str(p.relative_to(RAIZ)) for p in DOCS.rglob("*.md")]
             if (RAIZ / "CONTINUIDAD.md").exists():
                 docs.append("CONTINUIDAD.md")
             return self.send_json(sorted(docs))
 
         if parsed.path == "/api/documento":
+            if not self._autorizar("lector"): return
             ruta = ruta_documento_valida(q.get("ruta", [""])[0])
             if ruta is None or not ruta.exists():
                 return self.send_json({"error": "ruta no autorizada o inexistente"}, 404)
             return self.send_texto(ruta.read_text(encoding="utf-8"))
 
         if parsed.path == "/api/auditorias":
+            if not self._autorizar("lector"): return
             n = proyecto_de_query(q)
             if n is None:
                 return self.send_json({"error": "proyecto invalido"}, 400)
@@ -276,6 +335,7 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
             return self.send_json(salida)
 
         if parsed.path == "/api/reporte":
+            if not self._autorizar("lector"): return
             nombre = q.get("carpeta", [""])[0]
             if not RE_CARPETA.match(nombre):
                 return self.send_json({"error": "carpeta inválida"}, 400)
@@ -286,6 +346,7 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
                                    "contenido": reporte.read_text(encoding="utf-8")})
 
         if parsed.path == "/api/verificar-paquete":
+            if not self._autorizar("lector"): return
             nombre = q.get("carpeta", [""])[0]
             if not RE_CARPETA.match(nombre):
                 return self.send_json({"error": "carpeta inválida"}, 400)
@@ -328,6 +389,33 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
             return self.send_json({"carpeta": nombre, "cadena": cadena,
                                    "manifiesto": manifiesto})
 
+        if parsed.path == "/api/buscar":
+            if not self._autorizar("lector"): return
+            n = proyecto_de_query(q)
+            if n is None:
+                return self.send_json({"error": "proyecto invalido"}, 400)
+            consulta = q.get("q", [""])[0].strip()
+            if not consulta:
+                return self.send_json({"error": "parámetro 'q' obligatorio"}, 400)
+            try:
+                carpeta = rutas.carpeta_de(n)
+                ruta_bit = rutas.bitacora_de(n)
+            except RuntimeError as e:
+                return self.send_json({"error": str(e)}, 404)
+            ruta_db = indice.ruta_indice(carpeta)
+            # Reconstrucción bajo demanda: garantiza resultados frescos aun
+            # si hubo registros por CLI (fuera de este servidor) desde la
+            # última búsqueda. En un ledger muy grande esto convendría
+            # moverlo a un job periódico (ver INSTALACION.md) en vez de
+            # hacerlo en cada request; para v0.4 se prioriza correctitud.
+            indice.reconstruir(ruta_bit, ruta_db)
+            resultados = indice.buscar_texto(ruta_db, consulta)
+            return self.send_json({"consulta": consulta, "resultados": resultados})
+
+        if parsed.path == "/api/usuarios":
+            if not self._autorizar("admin"): return
+            return self.send_json(identidad.listar_usuarios())
+
         return super().do_GET()
 
     # ---------------- escritura ----------------
@@ -337,7 +425,29 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
         if datos is None:
             return self.send_json({"error": "JSON inválido"}, 400)
 
+        if parsed.path == "/api/login":
+            ip = self.client_address[0]
+            usuario = (datos.get("usuario") or "").strip()
+            if _login_bloqueado(ip, usuario):
+                return self.send_json(
+                    {"error": "demasiados intentos fallidos; esperá unos minutos"}, 429)
+            password = datos.get("password") or ""
+            try:
+                sesion = identidad.autenticar(usuario, password)
+            except identidad.ErrorIdentidad:
+                _registrar_intento_fallido(ip, usuario)
+                return self.send_json({"error": "usuario o contraseña inválidos"}, 401)
+            return self.send_json(sesion)
+
+        if parsed.path == "/api/logout":
+            token = self._token_de_header()
+            if token:
+                identidad.cerrar_sesion(token)
+            return self.send_json({"ok": True})
+
         if parsed.path == "/api/proyecto/crear":
+            info = self._autorizar("admin")
+            if not info: return
             titulo = (datos.get("titulo") or "").strip()
             ref = (datos.get("ref") or "").strip().upper()
             nivel = datos.get("nivel", "simple")
@@ -366,14 +476,16 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
                                f"Proyecto creado: {titulo}",
                                f"Ref: {ref}, nivel: {nivel}. {descripcion}",
                                "--archivos", "data/proyectos.jsonl",
-                               "--modo-firma", "hash")
+                               "--modo-firma", "ed25519_actor", "--actor", info["usuario"])
             return self.send_json({"ok": True, "stdout": r.stdout.strip(),
                                    "registro": r2.stdout.strip()})
 
         if parsed.path == "/api/registrar":
+            info = self._autorizar("auditor")
+            if not info: return
             titulo = (datos.get("titulo") or "").strip()
             detalle = (datos.get("detalle") or "").strip()
-            modo = datos.get("modo_firma", "hash")
+            modo = datos.get("modo_firma", "ed25519_actor")
             if not titulo or not detalle:
                 return self.send_json({"error": "titulo y detalle son obligatorios"}, 400)
             if modo not in MODOS_FIRMA:
@@ -385,6 +497,8 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
                 except (TypeError, ValueError):
                     return self.send_json({"error": "proyecto invalido"}, 400)
             args = [titulo, detalle, "--modo-firma", modo]
+            if modo == "ed25519_actor":
+                args += ["--actor", info["usuario"]]
             archivos = (datos.get("archivos") or "").strip()
             if archivos:
                 args += ["--archivos", archivos]
@@ -397,6 +511,8 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
                                    "stderr": r.stderr.strip()})
 
         if parsed.path == "/api/modo":
+            info = self._autorizar("admin")
+            if not info: return
             nivel = datos.get("nivel")
             if nivel not in MODOS:
                 return self.send_json({"error": f"nivel inválido: {nivel}"}, 400)
@@ -409,13 +525,15 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
             r2 = correr_script("registrar.py",
                                f"Cambio de modo del proyecto #{n} a {nivel}",
                                f"Solicitado desde la interfaz. Motivo: {motivo}",
+                               "--modo-firma", "ed25519_actor", "--actor", info["usuario"],
                                "--archivos", "data/proyectos.jsonl",
-                               "--modo-firma", "hash",
                                proyecto=int(n))
             return self.send_json({"ok": True, "stdout": r.stdout.strip(),
                                    "registro": r2.stdout.strip()})
 
         if parsed.path == "/api/documento":
+            info = self._autorizar("auditor")
+            if not info: return
             cuerpo = datos.get("cuerpo") or ""
             LIMITE_DOC = 5 * 1024 * 1024  # 5 MB
             if len(cuerpo.encode("utf-8")) > LIMITE_DOC:
@@ -453,11 +571,14 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
             r2 = correr_script("registrar.py",
                                f"Documento {'creado' if creada else 'actualizado'}: {rel}",
                                "Guardado desde el editor de la interfaz (ADR-002).",
-                               "--archivos", rel, "--modo-firma", "hash")
+                               "--archivos", rel, "--modo-firma", "ed25519_actor",
+                               "--actor", info["usuario"])
             return self.send_json({"ok": True, "creada": creada, "ruta": rel,
                                    "registro": r2.stdout.strip()})
 
         if parsed.path == "/api/auditar":
+            info = self._autorizar("auditor")
+            if not info: return
             motivo = (datos.get("motivo") or "Auditoría desde la interfaz").strip()
             tipo = datos.get("tipo", "rapida")
             if tipo not in ("rapida", "estandar", "profunda"):
@@ -468,6 +589,7 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
                 return self.send_json({"error": "proyecto invalido"}, 400)
             r = correr_script("auditar.py", "--proyecto", str(proyecto),
                               "--motivo", motivo, "--tipo", tipo,
+                              "--actor", info["usuario"], "--rol-actor", info["rol"],
                               proyecto=proyecto)
             carpeta = None
             if AUDITORIAS.exists():

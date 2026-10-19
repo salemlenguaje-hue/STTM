@@ -1,0 +1,18 @@
+# STTM v0.4 — Caddyfile
+# TLS automático vía Let's Encrypt: Caddy lo maneja solo, sin config
+# manual de certificados, mientras el dominio apunte a este servidor
+# y los puertos 80/443 estén abiertos.
+
+{$STTM_DOMINIO} {
+	reverse_proxy sttm:8000
+
+	# Cabeceras de seguridad básicas. No reemplazan una revisión de
+	# seguridad real (ver el pedido de auditoría externa en AYUDA.md),
+	# pero son la base mínima esperable en cualquier despliegue serio.
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "same-origin"
+	}
+}

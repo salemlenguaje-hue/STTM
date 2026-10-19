@@ -16,16 +16,25 @@ venv/
 .idea/
 .vscode/
 
-# --- STTM: Seguridad y Datos Privados (Alineado a R14-15 / R20-15) ---
-# Ignoramos bases de datos locales (se exportan canónicamente si hace falta)
+# --- STTM: Seguridad y Datos Privados ---
+# Ignoramos bases de datos locales (el índice se reconstruye siempre;
+# ver ADR-STTM-006).
 data/*.db
+data/**/*.db
 data/*.sqlite
 
-# Ignoramos claves criptográficas y secretos
+# Ignoramos TODA clave criptográfica y secreto por defecto.
 *.key
 *.pem
 *.env
 *.secret
+
+# Usuarios y sesiones: contienen hashes de contraseñas y tokens.
+data/usuarios.json
+data/sesiones.json
+
+# Claves de cifrado de crypto-shredding (ADR-STTM-007): NUNCA se versionan.
+data/claves/entradas/
 
 # Ignoramos temporalidades de auditoría
 auditorias/temp/
@@ -33,5 +42,11 @@ auditorias/temp/
 # --- Notas de estrategia local (con nombres de entidades) ---
 data/estrategia/
 
-# --- K-005: clave publica anclada (verificable por terceros) ---
+# --- Excepción: las claves PÚBLICAS de cada usuario SÍ se pueden
+#     versionar/publicar (v0.4, ADR-STTM-004) — son lo que un tercero
+#     necesita para verificar firmas, igual que la vieja clave pública
+#     única de proyecto en v0.3. Solo las privadas quedan excluidas por
+#     la regla "*.pem" de arriba, que sigue aplicando.
+!data/claves/usuarios/*_publica.pem
+!data/claves/proyecto_publica.pem
 !data/claves/sofia_publica.pem

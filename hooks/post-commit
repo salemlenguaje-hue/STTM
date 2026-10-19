@@ -1,0 +1,52 @@
+#!/bin/sh
+# STTM v0.4 — hooks/post-commit
+#
+# Registra automáticamente cada commit en la bitácora STTM: resuelve el
+# pedido de "que la trazabilidad se genere sola como efecto colateral
+# del flujo existente", no como un paso manual extra que la gente se
+# olvida de correr.
+#
+# Instalación (una vez por clon del repo):
+#   cp hooks/post-commit .git/hooks/post-commit
+#   chmod +x .git/hooks/post-commit
+#
+# Requiere que STTM_ACTOR esté seteado en tu entorno (o en
+# .git/hooks/post-commit.env, ver abajo) con tu nombre de usuario STTM
+# — si no está seteado, el hook avisa y no hace nada (no falla el
+# commit: nunca bloqueamos el flujo normal de git por esto).
+#
+# Nota de honestidad técnica: este hook no se pudo probar contra un
+# repo git real en este entorno (el .git de este paquete es un
+# esqueleto vacío, sin red para clonar nada). La lógica es simple
+# (leer variables de un commit ya hecho, invocar registrar.py) y de
+# bajo riesgo, pero probalo vos con un commit de prueba antes de
+# confiar en que corre en cada commit de tu equipo.
+
+# Variables de entorno específicas del hook (opcional, no versionado).
+[ -f "$(dirname "$0")/post-commit.env" ] && . "$(dirname "$0")/post-commit.env"
+
+if [ -z "$STTM_ACTOR" ]; then
+    echo "⚠️  STTM: post-commit sin registrar (falta STTM_ACTOR)."
+    echo "    Configuralo con: git config sttm.actor <tu-usuario-sttm>"
+    echo "    o export STTM_ACTOR=<tu-usuario-sttm> en tu shell."
+    exit 0
+fi
+
+STTM_ACTOR="${STTM_ACTOR:-$(git config sttm.actor 2>/dev/null)}"
+[ -z "$STTM_ACTOR" ] && exit 0
+
+REPO_RAIZ="$(git rev-parse --show-toplevel)"
+STTM_ROOT="${STTM_ROOT:-$REPO_RAIZ}"
+COMMIT_HASH="$(git rev-parse --short HEAD)"
+COMMIT_MSG="$(git log -1 --pretty=%s)"
+ARCHIVOS="$(git diff-tree --no-commit-id --name-only -r HEAD | tr '\n' ',' | sed 's/,$//')"
+
+STTM_ROOT="$STTM_ROOT" python3 "$REPO_RAIZ/scripts/registrar.py" \
+    "Commit: $COMMIT_MSG" \
+    "Registrado automáticamente por hooks/post-commit." \
+    --archivos "$ARCHIVOS" \
+    --commit "$COMMIT_HASH" \
+    --actor "$STTM_ACTOR" \
+    2>&1 | sed 's/^/[STTM] /'
+
+exit 0
