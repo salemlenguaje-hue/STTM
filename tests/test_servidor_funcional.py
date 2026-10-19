@@ -86,7 +86,8 @@ class TestServidorFuncional(unittest.TestCase):
             try:
                 urllib.request.urlopen(f"{cls.base}/api/proyecto", timeout=1)
                 break
-            except urllib.error.HTTPError:
+            except urllib.error.HTTPError as e:
+                e.close()
                 break
             except Exception:
                 time.sleep(0.25)
@@ -118,7 +119,8 @@ class TestServidorFuncional(unittest.TestCase):
             with urllib.request.urlopen(req, timeout=60) as r:
                 return r.status, r.read().decode("utf-8")
         except urllib.error.HTTPError as e:
-            return e.code, e.read().decode("utf-8")
+            with e:
+                return e.code, e.read().decode("utf-8")
 
     @classmethod
     def _login(cls, usuario, password):

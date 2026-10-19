@@ -80,7 +80,8 @@ class TestLimites(unittest.TestCase):
             try:
                 urllib.request.urlopen(f"{cls.url}/api/proyecto", timeout=1)
                 break
-            except urllib.error.HTTPError:
+            except urllib.error.HTTPError as e:
+                e.close()
                 break
             except Exception:
                 time.sleep(0.25)
@@ -128,8 +129,9 @@ class TestLimites(unittest.TestCase):
             self._post("/api/registrar", payload)
             self.fail("Debería haber fallado con 413 o cierre de conexión")
         except urllib.error.HTTPError as e:
-            self.assertEqual(e.code, 413)
-            self.assertIn("demasiado grande", e.read().decode("utf-8").lower())
+            with e:
+                self.assertEqual(e.code, 413)
+                self.assertIn("demasiado grande", e.read().decode("utf-8").lower())
         except urllib.error.URLError as e:
             razon = str(getattr(e, "reason", e))
             self.assertTrue(
@@ -177,8 +179,9 @@ class TestLimites(unittest.TestCase):
                               "cuerpo": "x" * (5 * 1024 * 1024 + 1)}).encode("utf-8")
         with self.assertRaises(urllib.error.HTTPError) as cm:
             self._post("/api/documento", payload)
-        self.assertEqual(cm.exception.code, 413)
-        self.assertIn("demasiado grande", cm.exception.read().decode("utf-8").lower())
+        with cm.exception as e:
+            self.assertEqual(e.code, 413)
+            self.assertIn("demasiado grande", e.read().decode("utf-8").lower())
 
     def test_script_colgado_devuelve_error_de_timeout(self):
         """H5: un script que cuelga no debe congelar el servidor.
