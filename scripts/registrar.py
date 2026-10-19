@@ -8,6 +8,7 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 import firma
+import identidad
 
 RAIZ = Path(os.environ.get("STTM_ROOT", Path(__file__).resolve().parent.parent))
 from rutas import BITACORA  # K-002: fuente única de verdad de rutas
@@ -41,25 +42,40 @@ def main() -> None:
     parser.add_argument("detalle")
     parser.add_argument("--archivos", default="")
     parser.add_argument("--commit", default=None)
-    parser.add_argument("--modo-firma", choices=["hash", "hmac", "ed25519"], default="hash")
+    parser.add_argument("--modo-firma", choices=["hash", "hmac", "ed25519", "ed25519_actor"],
+                         default=None,
+                         help="Por defecto: 'ed25519_actor' si se pasa --actor, si no 'hash' "
+                              "(compatibilidad con proyectos v0.3).")
+    parser.add_argument("--actor", default=None,
+                         help="Usuario STTM (v0.4) que firma esta entrada con su clave propia. "
+                              "Requerido para --modo-firma ed25519_actor.")
     args = parser.parse_args()
+    modo_firma = args.modo_firma or ("ed25519_actor" if args.actor else "hash")
 
     ultima = leer_ultima_entrada()
     archivos = [a.strip() for a in args.archivos.split(",") if a.strip()]
+    es_v3 = modo_firma == "ed25519_actor"
+
+    if es_v3 and not args.actor:
+        raise RuntimeError("--modo-firma ed25519_actor requiere --actor <usuario>")
 
     entrada = {
         "n": ultima["n"] + 1, "ts": ahora_utc(), "titulo": args.titulo,
         "detalle": args.detalle, "archivos": archivos, "commit_ref": args.commit,
-        "firma_tipo": args.modo_firma, "firma": None,
+        "firma_tipo": modo_firma, "firma": None,
         "hash_prev": ultima["hash"],
     }
+    if es_v3:
+        entrada["actor"] = args.actor
 
-    # 1) Hash de contenido canónico (sin firma).
-    entrada["hash"] = firma.hash_contenido(entrada)
+    # 1) Hash de contenido canónico (sin firma). v3 usa JCS + campo 'actor';
+    #    v1/v2 (compatibilidad hacia atrás) siguen con json.dumps sort_keys.
+    entrada["hash"] = firma.hash_contenido_v3(entrada) if es_v3 else firma.hash_contenido(entrada)
 
     # Guard: las claves de la entrada deben ser exactamente las canónicas.
     # Se verifica DESPUÉS de calcular el hash y ANTES de la firma.
-    claves_esperadas = set(firma.CAMPOS_BASE) | {"firma", "hash"}
+    campos_base = firma.CAMPOS_BASE_V3 if es_v3 else firma.CAMPOS_BASE
+    claves_esperadas = set(campos_base) | {"firma", "hash"}
     claves_reales = set(entrada.keys())
     if claves_reales != claves_esperadas:
         extras = claves_reales - claves_esperadas
@@ -68,16 +84,24 @@ def main() -> None:
             f"Las claves de la entrada no coinciden con las canónicas. "
             f"Extras: {extras}. Faltan: {faltan}. "
             f"Si agregaste un campo nuevo, actualizá CAMPOS_BASE en firma.py.")
-    
+
     # 2) Firma canónica: sobre base + hash, NUNCA sobre sí misma.
-    if args.modo_firma == "hmac":
+    if modo_firma == "ed25519_actor":
+        try:
+            entrada["firma"] = identidad.firmar_como(args.actor, firma.texto_firmable_v3(entrada))
+        except identidad.ErrorIdentidad as e:
+            print(f"❌ {e}")
+            return
+    elif modo_firma == "hmac":
         if not CLAVE_HMAC:
             raise RuntimeError(
                 "Modo HMAC requiere STTM_HMAC_KEY. Seteala con: "
-                "export STTM_HMAC_KEY='tu_clave_secreta'")
+                "export STTM_HMAC_KEY='tu_clave_secreta'. "
+                "(Nota v0.4: preferí --actor <usuario>, que firma con la "
+                "clave propia de la persona en vez de un secreto compartido.)")
         entrada["firma"] = firma.hmac_firma(entrada, CLAVE_HMAC)
-    elif args.modo_firma == "ed25519":
-        ruta_priv = RAIZ / "data" / "claves" / "sofia_privada.pem"
+    elif modo_firma == "ed25519":
+        ruta_priv = RAIZ / "data" / "claves" / "proyecto_privada.pem"
         if not ruta_priv.exists():
             print("❌ Clave privada no encontrada. Ejecuta: python scripts/firma.py ceremonia")
             return

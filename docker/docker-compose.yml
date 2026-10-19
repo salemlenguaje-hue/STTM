@@ -1,0 +1,63 @@
+# STTM v0.4 — docker-compose.yml
+#
+# ⚠️ NO PROBADO end-to-end (mismo motivo que el Dockerfile: sin red
+# saliente en el entorno donde se escribió esto, no se pudo bajar
+# imágenes ni correr `docker compose up`). Sintaxis estándar de Compose
+# v2 — corré `docker compose config` primero para validarla en tu
+# máquina antes de considerar esto "activo".
+#
+# Dos servicios:
+#   sttm  — la app en sí, HTTP plano puerto 8000 (solo accesible
+#           DENTRO de la red interna de Docker, no publicado al host).
+#   caddy — reverse proxy con TLS automático (Let's Encrypt) delante.
+#           Si no tenés un dominio propio todavía, comentá el servicio
+#           `caddy` y publicá el puerto de `sttm` directo (ver abajo)
+#           — sin TLS, solo para probar en tu red local.
+#
+# Uso con dominio propio (recomendado para producción):
+#   1. Editá docker/Caddyfile: reemplazá "tu-dominio.ejemplo.com".
+#   2. export STTM_DOMINIO=sttm.tuempresa.com
+#   3. docker compose -f docker/docker-compose.yml up -d
+#
+# Uso rápido SIN dominio (solo para probar en tu red local, sin TLS):
+#   Comentá el bloque "caddy" completo y descomentá la línea
+#   "ports: ['8000:8000']" bajo el servicio sttm.
+
+services:
+  sttm:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - sttm_datos:/app/data
+      - sttm_auditorias:/app/auditorias
+    environment:
+      - STTM_ROOT=/app
+    # Sin dominio/Caddy, descomentá esta línea para acceder directo
+    # (SIN TLS — solo para pruebas en red local, nunca en internet):
+    # ports:
+    #   - "8000:8000"
+    expose:
+      - "8000"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - sttm
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - STTM_DOMINIO=${STTM_DOMINIO:-localhost}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_datos:/data
+      - caddy_config:/config
+
+volumes:
+  sttm_datos:
+  sttm_auditorias:
+  caddy_datos:
+  caddy_config:

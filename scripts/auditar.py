@@ -253,6 +253,12 @@ def main():
     parser.add_argument("--proyecto", type=int, default=1)
     parser.add_argument("--motivo", default="Auditoría de rutina")
     parser.add_argument("--tipo", choices=("rapida", "estandar", "profunda"), default="rapida")
+    parser.add_argument("--actor", default=None,
+                         help="Usuario STTM (v0.4) que solicita/ejecuta la auditoría. "
+                              "Sin esto, queda registrado como 'desconocido' — nunca "
+                              "se asume un nombre por defecto (hallazgo del análisis "
+                              "crítico previo: quedaba hardcodeado a un único autor).")
+    parser.add_argument("--rol-actor", default="auditor")
     args = parser.parse_args()
 
     # A1: resolver la bitácora del proyecto solicitado explícitamente,
@@ -317,8 +323,8 @@ def main():
         "proyecto_ref": proyecto_ref,
         "fecha_utc": ts,
         "motivo": args.motivo,
-        "solicitante": {"rol": "autor", "nombre": "Martín José Dalberto"},
-        "ejecutado_por": {"rol": "autor", "nombre": "Martín José Dalberto"},
+        "solicitante": {"rol": args.rol_actor, "nombre": args.actor or "desconocido"},
+        "ejecutado_por": {"rol": args.rol_actor, "nombre": args.actor or "desconocido"},
         "tipo": args.tipo,
         "modo_aplicado": modo,
         "hallazgos": {"rojos": rojos, "amarillos": amarillos, "informativos": 0},

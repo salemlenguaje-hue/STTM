@@ -13,6 +13,7 @@ import os
 import sys
 from pathlib import Path
 import firma
+import identidad
 
 RAIZ = Path(os.environ.get("STTM_ROOT", Path(__file__).resolve().parent.parent))
 from rutas import BITACORA  # K-002: fuente única de verdad de rutas
@@ -26,7 +27,7 @@ def verificar(ruta=None):
         "ruta": str(ruta),
         "existe": ruta.exists(),
         "entradas": 0,
-        "schemas": {"v1": 0, "v2": 0},
+        "schemas": {"v1": 0, "v2": 0, "v3": 0},
         "por_entrada": [],
         "problemas": [],
         "avisos": [],
@@ -64,7 +65,9 @@ def verificar(ruta=None):
             entrada_problemas.append(f"Entrada #{n}: cadena rota.")
 
         h = entrada.get("hash")
-        if h == firma.hash_contenido(entrada):
+        if h == firma.hash_contenido_v3(entrada) and entrada.get("actor") is not None:
+            res["schemas"]["v3"] += 1
+        elif h == firma.hash_contenido(entrada):
             res["schemas"]["v2"] += 1
         elif h == firma.hash_contenido_v1(entrada):
             res["schemas"]["v1"] += 1
@@ -73,7 +76,25 @@ def verificar(ruta=None):
 
         modo = entrada.get("firma_tipo")
         f = entrada.get("firma")
-        if modo == "hash":
+        if modo == "ed25519_actor":
+            actor = entrada.get("actor")
+            if not actor:
+                entrada_problemas.append(f"Entrada #{n}: modo ed25519_actor sin 'actor' declarado.")
+            elif not f:
+                entrada_problemas.append(f"Entrada #{n}: sin firma.")
+            elif not identidad.verificar_firma_de(actor, firma.texto_firmable_v3(entrada), f):
+                # Puede ser una firma inválida real, o que la clave pública
+                # del actor ya no esté disponible (usuario borrado/migrado).
+                ruta_pub = identidad.CLAVES_USUARIOS_DIR / f"{actor}_publica.pem"
+                if not ruta_pub.exists():
+                    entrada_avisos.append(
+                        f"Entrada #{n}: clave pública de '{actor}' ausente, "
+                        f"verificación degradada.")
+                else:
+                    entrada_problemas.append(f"Entrada #{n}: firma Ed25519 inválida para actor '{actor}'.")
+            else:
+                firma_ok = True
+        elif modo == "hash":
             if f is not None:
                 entrada_problemas.append(f"Entrada #{n}: modo hash no debería tener firma.")
             else:
@@ -128,7 +149,8 @@ def main() -> int:
         return 0
 
     print(f"🔍 Verificando: {res['ruta']}")
-    print(f"Entradas: {res['entradas']} (schemas: v1={res['schemas']['v1']}, v2={res['schemas']['v2']})")
+    print(f"Entradas: {res['entradas']} (schemas: v1={res['schemas']['v1']}, "
+          f"v2={res['schemas']['v2']}, v3={res['schemas']['v3']})")
 
     if res["avisos"]:
         print(f"⚠️ {len(res['avisos'])} aviso(s):")

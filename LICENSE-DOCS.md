@@ -1,32 +1,18 @@
-# Documentation License — CC-BY 4.0
+Documentación de STTM (todo lo que vive bajo docs/, README.md, AYUDA.md,
+INSTALACION.md, CONTINUIDAD.md, CHANGELOG.md y este mismo archivo) —
+Copyright (c) 2026 Martín José Dalberto.
 
-All documentation in this repository — including `README.md`,
-`docs/**/*.md`, one-pagers, governance documents (GOBs), architecture
-records (ADRs), and audit report templates — is licensed under the
-**Creative Commons Attribution 4.0 International License (CC-BY 4.0)**.
+Licenciado bajo Creative Commons Attribution 4.0 International (CC BY 4.0).
 
-- Official legal text: https://creativecommons.org/licenses/by/4.0/legalcode
-- Human-readable summary: https://creativecommons.org/licenses/by/4.0/
+Texto completo de la licencia: https://creativecommons.org/licenses/by/4.0/legalcode
 
-## Attribution requirements
+En resumen (esto no reemplaza el texto legal completo del enlace anterior):
+usted es libre de compartir y adaptar este material para cualquier
+propósito, incluso comercial, siempre que dé crédito apropiado a Martín
+José Dalberto, incluya un enlace a la licencia, e indique si hizo cambios.
 
-If you reuse, adapt or redistribute this documentation, you must:
+---
 
-1. **Credit:** "STTM — Salem Traceability & Trust Method" by
-   Martín José Dalberto (Argentina, 2026).
-2. **Link** to the CC-BY 4.0 license.
-3. **Indicate** if changes were made.
-4. **Not imply** endorsement by the author.
-
-## Scope boundary (what each license covers)
-
-| Material | License | File |
-|---|---|---|
-| Code (`scripts/`, `tests/`, `web/`) | MIT | `LICENSE` |
-| Documentation (`README.md`, `docs/`, report templates) | CC-BY 4.0 | this file |
-| Generated audit reports (`auditorias/*/reporte.md`) | CC-BY 4.0 | attribution satisfied by keeping the generated footer |
-| Salem isolog / trademark | **Not licensed. All rights reserved.** | INPI registration |
-
-The Salem isolog (the infinite-S mark) is a registered trademark.
-No license in this repository grants rights to use it.
-Do not reuse the logo without explicit permission from the author.
+Nota (v0.4): igual que LICENSE (MIT), este archivo estaba referenciado
+desde v0.3 ("CC-BY 4.0 para documentación") pero no existía como archivo
+real — hallazgo de un análisis crítico externo previo.

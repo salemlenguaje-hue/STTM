@@ -19,3 +19,10 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Nota (v0.4): este archivo estaba referenciado en la documentación de STTM
+desde v0.3 ("Licencias reales: MIT para código") pero no existía como
+archivo real en el repositorio — hallazgo de un análisis crítico externo
+previo. Se agrega acá para que la referencia deje de ser aspiracional.

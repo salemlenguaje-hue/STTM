@@ -344,3 +344,78 @@ form select:focus {
   .select-modo { min-width: 0; }
   nav { flex-wrap: wrap; }
 }
+
+/* --- STTM v0.4: pantalla de login --- */
+.pantalla-login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 16px;
+}
+.caja-login {
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.logo-login { width: 56px; height: 56px; object-fit: contain; margin: 0 auto 4px; }
+.caja-login h2 { color: var(--azul-oscuro); font-size: 1.15rem; text-align: center; margin-bottom: 8px; }
+.caja-login label { font-size: .85rem; color: var(--tinta-suave); margin-top: 4px; }
+.caja-login input {
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: .95rem;
+  font-family: inherit;
+}
+.caja-login input:focus { outline: none; border-color: var(--azul); }
+.caja-login .btn-primario {
+  margin-top: 12px;
+  background: var(--azul);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.caja-login .btn-primario:hover { background: var(--azul-oscuro); }
+.caja-login .btn-primario:disabled { opacity: .6; cursor: wait; }
+.login-error {
+  color: var(--error);
+  font-size: .85rem;
+  background: #FBEAEA;
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.login-ayuda {
+  font-size: .75rem;
+  color: var(--tinta-suave);
+  margin-top: 10px;
+  line-height: 1.4;
+}
+.login-ayuda code {
+  background: var(--azul-suave);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .7rem;
+}
+.pie-usuario { color: var(--tinta-suave); font-size: .8rem; }
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--azul);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: .8rem;
+  padding: 0;
+}
