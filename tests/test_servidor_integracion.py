@@ -90,6 +90,10 @@ class TestServidorIntegracion(unittest.TestCase):
             cls.proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
             cls.proc.kill()
+        # Cerrar los pipes para no dejar ResourceWarning.
+        for tubo in (cls.proc.stdout, cls.proc.stderr):
+            if tubo:
+                tubo.close()
         __import__("shutil").rmtree(cls.tmp, ignore_errors=True)
 
     def _login(self, usuario, password):

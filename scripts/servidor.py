@@ -242,6 +242,7 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
         LIMITE_JSON = 10 * 1024 * 1024  # 10 MB
         if largo > LIMITE_JSON:
             self.send_json({"error": f"JSON demasiado grande (máximo {LIMITE_JSON} bytes)"}, 413)
+            self._respondido = True  # evita una segunda respuesta en do_POST
             return None
         crudo = self.rfile.read(largo) if largo else b"{}"
         try:
@@ -423,6 +424,8 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
         parsed = urlparse(self.path)
         datos = self.leer_json()
         if datos is None:
+            if getattr(self, "_respondido", False):
+                return
             return self.send_json({"error": "JSON inválido"}, 400)
 
         if parsed.path == "/api/login":
