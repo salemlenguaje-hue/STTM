@@ -258,7 +258,7 @@ def main():
                               "Sin esto, queda registrado como 'desconocido' — nunca "
                               "se asume un nombre por defecto (hallazgo del análisis "
                               "crítico previo: quedaba hardcodeado a un único autor).")
-    parser.add_argument("--rol-actor", default="auditor")
+    parser.add_argument("--rol-actor", default="lector")
     args = parser.parse_args()
 
     # A1: resolver la bitácora del proyecto solicitado explícitamente,
@@ -337,6 +337,8 @@ def main():
         "manifiesto_ruta": "manifiesto.json",
         "observaciones": res["avisos"] + amarillos_priv + rojos_priv,
     }
+    meta["manifiesto_sha256"] = auditoria_meta.sha256_de(ruta_man)
+    meta = auditoria_meta.firmar_meta(meta, args.actor, args.rol_actor)
     try:
         ruta_meta = auditoria_meta.escribir_meta(carpeta, meta)
         print(f"✅ Meta de auditoría escrita en: {ruta_meta.relative_to(RAIZ)}")

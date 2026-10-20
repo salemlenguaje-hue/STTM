@@ -53,6 +53,68 @@ def nuevo_id():
     return "AUD-" + datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
 
 
+def sha256_de(ruta):
+    import hashlib
+    h = hashlib.sha256()
+    with Path(ruta).open("rb") as f:
+        for bloque in iter(lambda: f.read(65536), b""):
+            h.update(bloque)
+    return h.hexdigest()
+
+
+def firmar_meta(meta, actor, rol):
+    """Firma meta.json con la clave del usuario que ejecutó la auditoría.
+
+    La firma cubre el JSON canónico (JCS) de meta sin el campo `firma`.
+    Como meta incluye `manifiesto_sha256`, la firma también cubre el
+    manifiesto y, por él, los hashes de los artefactos.
+    Sin actor (o sin clave propia) la auditoría queda sin firma, y se
+    declara así en vez de fingir una firma.
+    """
+    import canon
+    import identidad
+    if not actor:
+        meta["firma"] = None
+        return meta
+    try:
+        payload = canon.canonicalizar_bytes({k: v for k, v in meta.items() if k != "firma"})
+        valor = identidad.firmar_como(actor, payload)
+    except identidad.ErrorIdentidad as e:
+        meta["firma"] = None
+        meta["observaciones"] = list(meta.get("observaciones", [])) + [f"sin firma: {e}"]
+        return meta
+    meta["firma"] = {"firmado_por": actor, "rol": rol, "algoritmo": "ed25519",
+                     "canon": "JCS-RFC8785", "valor": valor}
+    return meta
+
+
+def verificar_firma_meta(carpeta):
+    """Estado de la firma de meta.json y del manifiesto. Solo lectura."""
+    import canon
+    import identidad
+    carpeta = Path(carpeta)
+    ruta_meta = carpeta / "meta.json"
+    if not ruta_meta.exists():
+        return {"estado": "sin_meta"}
+    meta = json.loads(ruta_meta.read_text(encoding="utf-8"))
+    firma = meta.get("firma")
+    if not firma:
+        return {"estado": "sin_firma"}
+    payload = canon.canonicalizar_bytes({k: v for k, v in meta.items() if k != "firma"})
+    firma_ok = identidad.verificar_firma_de(firma.get("firmado_por", ""), payload,
+                                            firma.get("valor", ""))
+    ruta_man = carpeta / "manifiesto.json"
+    manifiesto = "faltante"
+    if ruta_man.exists():
+        manifiesto = "ok"
+        if sha256_de(ruta_man) != meta.get("manifiesto_sha256"):
+            manifiesto = "alterado"
+    return {"estado": "firmada_valida" if firma_ok else "firma_invalida",
+            "firmado_por": firma.get("firmado_por"),
+            "rol": firma.get("rol"),
+            "manifiesto": manifiesto}
+
+
 def escribir_meta(carpeta, meta):
     """Escribe meta.json una sola vez. Si existe, se niega (ADR-003)."""
     carpeta.mkdir(parents=True, exist_ok=True)
@@ -145,9 +207,9 @@ def main():
     g.add_argument("--tipo", choices=TIPOS, default="rapida")
     g.add_argument("--modo", choices=MODOS, default="continuidad")
     g.add_argument("--solicitante-rol", choices=ROLES, default="autor")
-    g.add_argument("--solicitante-nombre", default="Martín José Dalberto")
+    g.add_argument("--solicitante-nombre", required=True)
     g.add_argument("--ejecutado-rol", choices=ROLES, default="autor")
-    g.add_argument("--ejecutado-nombre", default="Martín José Dalberto")
+    g.add_argument("--ejecutado-nombre", required=True)
     g.add_argument("--rojos", type=int, default=0)
     g.add_argument("--amarillos", type=int, default=0)
     g.add_argument("--informativos", type=int, default=0)

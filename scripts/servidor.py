@@ -387,8 +387,11 @@ class STTMHandler(http.server.SimpleHTTPRequestHandler):
                     nota_bit = ("la bitácora cambió después de esta auditoría "
                                 "(esperado si hubo registros posteriores)")
                 manifiesto = {"ok": ok, "detalles": detalles, "nota_bitacora": nota_bit}
+            import auditoria_meta
+            firma_meta = auditoria_meta.verificar_firma_meta(carpeta)
             return self.send_json({"carpeta": nombre, "cadena": cadena,
-                                   "manifiesto": manifiesto})
+                                   "manifiesto": manifiesto,
+                                   "firma_meta": firma_meta})
 
         if parsed.path == "/api/buscar":
             if not self._autorizar("lector"): return
