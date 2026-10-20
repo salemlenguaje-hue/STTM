@@ -1,5 +1,16 @@
 # CHANGELOG — STTM
 
+## v0.4.x — Firma de auditorías (en curso)
+
+- **Firma del ejecutor:** `meta.json` de cada auditoría se firma con la clave Ed25519 del usuario que la ejecuta (`identidad.firmar_como`), sobre el JSON canónico JCS. La firma queda en el campo `firma`.
+- **Manifiesto enlazado:** `meta.json` incluye `manifiesto_sha256`, así que la firma cubre también el manifiesto y, por él, los hashes de los artefactos.
+- **Verificación:** `/api/verificar-paquete` devuelve `firma_meta` con el estado (`firmada_valida`, `firma_invalida`, `sin_firma`) y el estado del manifiesto (`ok`, `alterado`, `faltante`).
+- **Sin usuario, sin firma:** una auditoría sin actor queda con `firma: null` y se declara así.
+- **Rol por defecto:** `--rol-actor` pasa de `auditor` a `lector` (menor privilegio).
+- **CLI sin autor por defecto:** `auditoria_meta.py generar` exige `--solicitante-nombre` y `--ejecutado-nombre`.
+
+Pendiente, decisión de diseño: la firma del **solicitante**. Requiere un flujo de aprobación entre dos usuarios (ADR-003). Hoy solicitante y ejecutor son la misma persona cuando se audita desde la interfaz.
+
 ## v0.4.0 (2026-09) — "Empresarial / N≥2"
 
 Motivada por: llevar STTM de herramienta de un solo autor a algo que un
